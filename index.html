@@ -2,54 +2,57 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TechStore OS - Universal Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechOS Ultra-Optimized</title>
     <style>
-        :root { --accent: #00ffcc; --bg: #0a0a0a; --card: #151515; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; overflow: hidden; height: 100vh; }
+        :root { --accent: #00ffcc; --bg: #050505; }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
         
-        header { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; transition: 0.3s; }
         
-        #shop-viewport { height: 80vh; display: flex; align-items: center; justify-content: center; }
-        #shop-content { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 40px; transition: transform 0.3s; }
+        /* FILTRO VISIÓN NOCTURNA */
+        body.nv-mode { filter: brightness(1.4) contrast(1.2) sepia(1) hue-rotate(80deg) saturate(4); }
+        body.nv-mode::after { content: ""; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,255,0,0.05) 0px, rgba(0,255,0,0.05) 1px, transparent 2px); pointer-events: none; z-index: 10000; }
 
-        /* Cualquier cosa con la clase 'interactive' se verá así al señalarla */
+        header { padding: 20px; text-align: center; border-bottom: 1px solid #222; position: relative; z-index: 10; }
+        
+        #viewport { height: 80vh; display: flex; align-items: center; justify-content: center; gap: 30px; position: relative; z-index: 10; }
+
+        /* CLASE UNIVERSAL: Cualquier elemento con 'interactive' o un link funcionará */
         .interactive {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #333;
-            text-align: center; width: 200px; transition: 0.3s; cursor: pointer;
+            background: #111; padding: 25px; border-radius: 15px; border: 1px solid #333;
+            text-align: center; min-width: 150px; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .interactive.hover-effect { 
-            border-color: var(--accent); 
-            box-shadow: 0 0 20px rgba(0,255,204,0.4); 
-            transform: scale(1.05);
-        }
+        .interactive.hover-effect { border-color: var(--accent); box-shadow: 0 0 25px rgba(0,255,204,0.3); transform: scale(1.05); }
+        .interactive a { color: var(--accent); text-decoration: none; font-weight: bold; }
+
+        #canvas-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+        #input_video { position: fixed; bottom: 10px; left: 10px; width: 120px; opacity: 0.4; transform: scaleX(-1); border-radius: 10px; z-index: 100; }
 
         #activate-btn {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 2000; padding: 15px 40px; background: var(--accent);
-            border: none; border-radius: 50px; font-weight: bold; cursor: pointer;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 10001; padding: 20px 40px; background: var(--accent); color: black;
+            border: none; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 0 30px var(--accent);
         }
-
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
-        #input_video { position: fixed; top: 10px; right: 10px; width: 80px; opacity: 0.3; transform: scaleX(-1); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <button id="activate-btn">INICIALIZAR SISTEMA</button>
+    <button id="activate-btn">INICIAR SISTEMA CORE</button>
 
-    <header><h1>TECH<span style="color:var(--accent)">OS</span></h1></header>
+    <header><h1>TECH<span style="color:var(--accent)">OS</span> v2.0</h1></header>
 
-    <div id="shop-viewport">
-        <div id="shop-content">
-            <div class="interactive">
-                <a href="https://youtube.com"></a>
-            </div>
-            <div class="interactive" onclick="alert('Compraste Pod Pro')"><h3>Pod Pro</h3><p>$200</p></div>
-            
-            <button class="interactive" onclick="console.log('Botón presionado')" style="height: 100px;">BOTÓN TEST</button>
-            
-            <div class="interactive" onclick="this.style.background='red'"><h3>Cambia Color</h3></div>
+    <div id="viewport">
+        <div class="interactive">
+            <a href="https://youtube.com" target="_blank">YOUTUBE</a>
+        </div>
+
+        <div class="interactive" onclick="document.body.classList.toggle('nv-mode')">
+            <p>VISIÓN NOCTURNA</p>
+        </div>
+
+        <div class="interactive" onclick="alert('Sistema Optimizado')">
+            <p>ESTADO</p>
         </div>
     </div>
 
@@ -61,78 +64,88 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        let smoothX = 0, smoothY = 0;
-        let lastHovered = null;
+        let sx = 0, sy = 0, lastH = null, canClick = true;
 
+        // --- MOTOR 3D LITE ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const cam3d = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
+        cam3d.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(1);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        const cursor = new THREE.Mesh(
-            new THREE.RingGeometry(0.1, 0.14, 32),
-            new THREE.MeshBasicMaterial({ color: 0x00ffcc })
-        );
+        const cursor = new THREE.Group();
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.22, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.5 }));
+        cursor.add(dot, ring);
         scene.add(cursor);
 
-        function onResults(results) {
-            const hands = results.multiHandLandmarks;
-            if (hands && hands.length > 0) {
-                const h1 = hands[0];
-                const index = h1[8], thumb = h1[4];
+        // --- PROCESAMIENTO IA ---
+        function onResults(res) {
+            if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
+                const hand = res.multiHandLandmarks[0];
+                const index = hand[8], thumb = hand[4];
 
-                // Movimiento
-                const tx = (index.x - 0.5) * -15;
+                // Movimiento Suavizado
+                const tx = (index.x - 0.5) * -14;
                 const ty = (index.y - 0.5) * -10;
-                smoothX += (tx - smoothX) * 0.2;
-                smoothY += (ty - smoothY) * 0.2;
-                cursor.position.set(smoothX, smoothY, 0);
+                sx += (tx - sx) * 0.25; sy += (ty - sy) * 0.25;
+                cursor.position.set(sx, sy, 0);
+                ring.rotation.z += 0.05;
 
-                // Mapeo de pantalla
-                const sx = (0.5 - (index.x - 0.5) * 2.5) * window.innerWidth;
-                const sy = (0.5 + (index.y - 0.5) * 2.5) * window.innerHeight;
-                
-                // --- DETECCIÓN UNIVERSAL ---
-                const el = document.elementFromPoint(sx, sy);
-                // Busca el elemento más cercano que sea interactivo (por clase o por tener un onclick)
-                const target = el ? el.closest('.interactive, [onclick], button') : null;
+                // Coordenadas de pantalla
+                const px = (0.5 - (index.x - 0.5) * 2.5) * window.innerWidth;
+                const py = (0.5 + (index.y - 0.5) * 2.5) * window.innerHeight;
 
-                if (target !== lastHovered) {
-                    if (lastHovered) lastHovered.classList.remove('hover-effect');
+                // DETECCIÓN UNIVERSAL (No necesitas tocar el JS)
+                const hit = document.elementFromPoint(px, py);
+                const target = hit ? hit.closest('.interactive, a, button') : null;
+
+                if (target !== lastH) {
+                    if (lastH) lastH.classList.remove('hover-effect');
                     if (target) target.classList.add('hover-effect');
-                    lastHovered = target;
+                    lastH = target;
                 }
 
-                // --- CLIC POR PELLIZCO (PINCH) ---
+                // GESTO DE PELLIZCO (CLICK)
                 const dist = Math.hypot(index.x - thumb.x, index.y - thumb.y);
-                if (dist < 0.04) { // Si los dedos se tocan
-                    cursor.scale.set(0.5, 0.5, 0.5);
+                if (dist < 0.04 && canClick) {
                     if (target) {
-                        target.click(); // Ejecuta el click real de HTML
-                        // Evitamos clicks repetidos infinitos mientras mantienes el pellizco
-                        thumb.x = 100; 
+                        cursor.scale.set(0.6, 0.6, 1);
+                        if (target.tagName === 'A') window.open(target.href, '_blank');
+                        else target.click();
+                        canClick = false; 
+                        setTimeout(() => canClick = true, 800); // Evita dobles clicks
                     }
-                } else {
+                } else if (dist > 0.06) {
                     cursor.scale.set(1, 1, 1);
                 }
             }
         }
 
+        // --- INICIALIZACIÓN ---
         document.getElementById('activate-btn').onclick = function() {
             this.style.display = 'none';
-            const handExt = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-            handExt.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7 });
-            handExt.onResults(onResults);
+            const hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7 });
+            hands.onResults(onResults);
+
             new Camera(document.getElementById('input_video'), {
-                onFrame: async () => { await handExt.send({image: document.getElementById('input_video')}); },
-                width: 640, height: 480
+                onFrame: async () => { if(!document.hidden) await hands.send({image: document.getElementById('input_video')}); },
+                width: 480, height: 360
             }).start();
         };
 
-        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, cam3d); }
         animate();
+
+        window.onresize = () => {
+            cam3d.aspect = window.innerWidth / window.innerHeight;
+            cam3d.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
     </script>
 </body>
 </html>
