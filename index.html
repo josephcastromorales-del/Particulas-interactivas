@@ -715,8 +715,8 @@
     <video id="input_video" playsinline></video>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1620248357/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
 
     <script>
         // === ESTADO DEL SISTEMA ===
@@ -832,4 +832,339 @@
             if (!hands || hands.length === 0) {
                 cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0);
                 if (lastHovered) {
-                    lastHovered.classList.remove('hover
+                    lastHovered.classList.remove('hover-effect');
+                    lastHovered = null;
+                }
+                clearTimeout(hoverTimer);
+                hideRadial();
+                currentGesture = 'NONE';
+                document.getElementById('gesture-display').textContent = 'Sin detección';
+                return;
+            }
+
+            const primaryHand = hands[0];
+            const gesture = detectGesture(primaryHand);
+            currentGesture = gesture;
+            document.getElementById('gesture-display').textContent = gesture;
+
+            const index = primaryHand[8];
+            const thumb = primaryHand[4];
+
+            const targetX = (index.x - 0.5) * -15;
+            const targetY = (index.y - 0.5) * -10;
+            smoothVelX = lerp(smoothVelX, targetX - smoothX, 0.3);
+            smoothVelY = lerp(smoothVelY, targetY - smoothY, 0.3);
+            smoothX += smoothVelX * config.smoothingFactor;
+            smoothY += smoothVelY * config.smoothingFactor;
+            cursor.position.set(smoothX, smoothY, 0);
+
+            const screenPos = mapToScreen(index);
+            const element = document.elementFromPoint(screenPos.x, screenPos.y);
+            const card = element ? element.closest('.product-card') : null;
+
+            // PINCH = CLICK/COMPRA
+            const pinchDist = distance(thumb, index);
+            if (gesture === 'PINCH' && !clickCooldown && card) {
+                const productName = card.querySelector('h3').textContent;
+                const productPrice = card.querySelector('p').textContent;
+                
+                cartItems.push({ name: productName, price: productPrice });
+                updateCart();
+                showNotification(`✅ ${productName} agregado al carrito`);
+                
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => card.style.transform = '', 200);
+                
+                clickCooldown = true;
+                setTimeout(() => clickCooldown = false, 500);
+            }
+
+            // HOVER Y MENÚ RADIAL
+            if (card && gesture === 'POINT') {
+                if (card !== lastHovered) {
+                    clearTimeout(hoverTimer);
+                    hideRadial();
+                    if (lastHovered) lastHovered.classList.remove('hover-effect');
+                    lastHovered = card;
+                    card.classList.add('hover-effect');
+                    
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 0.05;
+                        const angle = progress * Math.PI * 2;
+                        cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, angle);
+                        if (progress >= 1) clearInterval(progressInterval);
+                    }, 50);
+
+                    hoverTimer = setTimeout(() => {
+                        showRadial(screenPos.x, screenPos.y, card);
+                    }, config.hoverDelay);
+                }
+            } else {
+                clearTimeout(hoverTimer);
+                hideRadial();
+                cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0);
+                if (lastHovered && lastHovered !== card) {
+                    lastHovered.classList.remove('hover-effect');
+                    lastHovered = null;
+                }
+            }
+
+            // SCROLL CON PEACE
+            if (gesture === 'PEACE') {
+                gestureHistory.push(index.y);
+                if (gestureHistory.length > 5) gestureHistory.shift();
+                
+                if (gestureHistory.length === 5) {
+                    const delta = gestureHistory[4] - gestureHistory[0];
+                    if (Math.abs(delta) > config.swipeThreshold) {
+                        document.getElementById('shop-viewport').scrollTop += delta * 800;
+                    }
+                }
+                cursor.material.color.set(0xff00ff);
+            } else {
+                gestureHistory = [];
+                cursor.material.color.set(0x00ffcc);
+            }
+
+            // MODO NOCTURNO
+            if (gesture === 'FIST') {
+                document.body.classList.add('dark-mode');
+                showNotification('🌙 Modo nocturno activado', 1500);
+            } else if (gesture === 'OPEN') {
+                document.body.classList.remove('dark-mode');
+                showNotification('☀️ Modo diurno activado', 1500);
+            }
+
+            // DOS MANOS: ZOOM
+            if (hands.length === 2) {
+                const hand2 = hands[1];
+                const currentDist = distance(primaryHand[8], hand2[8]);
+                
+                if (lastDist > 0) {
+                    const diff = currentDist - lastDist;
+                    if (Math.abs(diff) > config.pinchThreshold) {
+                        zoomLevel += diff * config.zoomSensitivity;
+                        zoomLevel = Math.max(config.minZoom, Math.min(config.maxZoom, zoomLevel));
+                        shop.style.transform = `scale(${zoomLevel})`;
+                    }
+                }
+                lastDist = currentDist;
+                cursor.material.color.set(0xffff00);
+            } else {
+                lastDist = 0;
+            }
+        }
+
+        // === MENÚ RADIAL ===
+        function showRadial(x, y, card) {
+            const menu = document.getElementById('radial-menu');
+            menu.style.display = 'block';
+            menu.style.left = (x - 100) + 'px';
+            menu.style.top = (y - 100) + 'px';
+            menu.style.pointerEvents = 'auto';
+            
+            const items = document.querySelectorAll('.radial-item');
+            items.forEach((item, i) => {
+                setTimeout(() => {
+                    item.style.transform = 'scale(1)';
+                    item.onclick = () => {
+                        const action = item.textContent.trim();
+                        const productName = card.querySelector('h3').textContent;
+                        
+                        if (action.includes('BUY')) {
+                            cartItems.push({ name: productName });
+                            updateCart();
+                            showNotification(`🛒 ${productName} agregado al carrito`);
+                        }
+                        if (action.includes('INFO')) {
+                            showProductInfo(card);
+                        }
+                        if (action.includes('FAV')) {
+                            favorites.push(productName);
+                            showNotification(`❤️ ${productName} agregado a favoritos`);
+                        }
+                        if (action.includes('SAVE')) {
+                            showNotification(`💾 ${productName} guardado`);
+                        }
+                        hideRadial();
+                    };
+                }, i * 100);
+            });
+            radialActive = true;
+        }
+
+        function hideRadial() {
+            const items = document.querySelectorAll('.radial-item');
+            items.forEach(item => {
+                item.style.transform = 'scale(0)';
+                item.onclick = null;
+            });
+            setTimeout(() => {
+                const menu = document.getElementById('radial-menu');
+                menu.style.display = 'none';
+                menu.style.pointerEvents = 'none';
+            }, 300);
+            radialActive = false;
+        }
+
+        function showProductInfo(card) {
+            const panel = document.getElementById('info-panel');
+            const title = card.querySelector('h3').textContent;
+            const price = card.querySelector('p').textContent;
+            const desc = card.querySelector('.description').textContent;
+            const stock = card.querySelector('.stock').textContent;
+            
+            document.getElementById('info-title').textContent = title;
+            document.getElementById('info-content').innerHTML = `
+                <p style="font-size: 1.5em; color: var(--accent); margin: 20px 0;">${price}</p>
+                <p style="line-height: 1.8; margin: 15px 0;">${desc}</p>
+                <p style="color: #999; margin: 10px 0;">${stock}</p>
+                <button style="width: 100%; padding: 15px; margin-top: 20px; background: var(--accent); border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1em;" onclick="addToCart('${title}', '${price}')">Agregar al Carrito 🛒</button>
+            `;
+            panel.classList.add('active');
+        }
+
+        function addToCart(name, price) {
+            cartItems.push({ name, price });
+            updateCart();
+            showNotification(`✅ ${name} agregado al carrito`);
+        }
+
+        // === TABS Y FILTROS ===
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const category = tab.dataset.category;
+                document.querySelectorAll('.product-card').forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const sort = btn.dataset.sort;
+                const container = document.getElementById('shop-content');
+                const cards = Array.from(container.querySelectorAll('.product-card'));
+                
+                cards.sort((a, b) => {
+                    if (sort === 'price-asc') return parseInt(a.dataset.price) - parseInt(b.dataset.price);
+                    if (sort === 'price-desc') return parseInt(b.dataset.price) - parseInt(a.dataset.price);
+                    if (sort === 'name') return a.querySelector('h3').textContent.localeCompare(b.querySelector('h3').textContent);
+                    return 0;
+                });
+                
+                cards.forEach(card => container.appendChild(card));
+            });
+        });
+
+        // BÚSQUEDA
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            document.querySelectorAll('.product-card').forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                card.style.display = title.includes(query) ? 'block' : 'none';
+            });
+        });
+
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('search-btn').click();
+        });
+
+        // CERRAR PANEL
+        document.querySelector('.close-btn').addEventListener('click', () => {
+            document.getElementById('info-panel').classList.remove('active');
+        });
+
+        // CARRITO
+        document.getElementById('cart').addEventListener('click', () => {
+            if (cartItems.length === 0) {
+                showNotification('🛒 El carrito está vacío');
+            } else {
+                const total = cartItems.reduce((sum, item) => {
+                    const price = parseInt(item.price?.replace(', '') || 0);
+                    return sum + price;
+                }, 0);
+                showNotification(`🛒 Carrito: ${cartItems.length} items | Total: ${total}`, 4000);
+            }
+        });
+
+        // === INICIALIZACIÓN ===
+        document.getElementById('activate-btn').onclick = async function() {
+            try {
+                this.textContent = '⏳ CARGANDO...';
+                this.disabled = true;
+                
+                // Verificar soporte de cámara
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showNotification('❌ Tu navegador no soporta acceso a cámara', 5000);
+                    this.textContent = '❌ NO SOPORTADO';
+                    return;
+                }
+
+                const hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
+                    }
+                });
+                
+                hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
+                hands.onResults(onResults);
+
+                const videoElement = document.getElementById('input_video');
+                
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await hands.send({ image: videoElement });
+                    },
+                    width: 1280,
+                    height: 720
+                });
+
+                await camera.start();
+                
+                this.style.display = 'none';
+                document.getElementById('status').textContent = 'Activo ✓';
+                showNotification('🚀 Sistema inicializado correctamente');
+                
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+                showNotification('❌ Error: ' + error.message, 5000);
+                this.textContent = '🔄 REINTENTAR';
+                this.disabled = false;
+            }
+        };
+
+        // === ANIMACIÓN ===
+        function animate() {
+            requestAnimationFrame(animate);
+            cursor.rotation.z += 0.02;
+            cursorProgress.rotation.z -= 0.03;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
