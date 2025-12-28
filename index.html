@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TechStore OS - Advanced Interface</title>
+    <title>techStore OS - Advanced Interface</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600&display=swap');
 
@@ -385,26 +385,24 @@
 
     <script>
         // === ESTADO DEL SISTEMA ===
-        let smoothX = 0, smoothY = 0, targetX = 0, targetY = 0;
-        let velocityX = 0, velocityY = 0;
+        let smoothX = 0, smoothY = 0;
         let zoomLevel = 1, lastDist = 0;
         let hoverTimer, radialActive = false, lastHovered = null;
         let clickCooldown = false, gestureHistory = [];
         let fps = 0, lastTime = performance.now(), frameCount = 0;
         let currentGesture = 'NONE';
 
-        // === CONFIGURACIÓN OPTIMIZADA PARA MÁXIMO RENDIMIENTO ===
+        // === CONFIGURACIÓN ULTRA-OPTIMIZADA ===
         const config = {
-            smoothingFactor: 0.45,      // Más rápido
-            velocityDamping: 0.75,      // Menos inercia
-            hoverDelay: 400,            // Más rápido
-            pinchThreshold: 0.08,       // Más sensible
-            swipeThreshold: 0.08,       // Más sensible
-            zoomSensitivity: 4,         // Más rápido
+            smoothingFactor: 0.7,       // Mucho más rápido
+            hoverDelay: 300,
+            pinchThreshold: 0.08,
+            swipeThreshold: 0.08,
+            zoomSensitivity: 4,
             maxZoom: 2.2,
             minZoom: 0.7,
-            minDetectionConfidence: 0.5, // Más rápido
-            minTrackingConfidence: 0.5   // Más rápido
+            minDetectionConfidence: 0.3, // Muy bajo para velocidad
+            minTrackingConfidence: 0.3   // Muy bajo para velocidad
         };
 
         // === UTILIDADES ===
@@ -424,34 +422,25 @@
             setTimeout(() => notification.remove(), duration);
         }
 
-        // === THREE.JS SETUP ===
+        // === THREE.JS ULTRA-SIMPLIFICADO ===
         const scene = new THREE.Scene();
         const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera3D.position.z = 5;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: false,  // DESACTIVADO para velocidad
+            alpha: true,
+            powerPreference: "high-performance"
+        });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(1); // Forzar bajo pixel ratio
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Cursor principal
+        // Solo cursor básico
         const cursor = new THREE.Mesh(
-            new THREE.RingGeometry(0.1, 0.13, 32),
+            new THREE.RingGeometry(0.1, 0.13, 16), // Menos segmentos
             new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.9 })
         );
         scene.add(cursor);
-
-        // Anillo de progreso
-        const cursorProgress = new THREE.Mesh(
-            new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0),
-            new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.8 })
-        );
-        scene.add(cursorProgress);
-
-        // Punto central del cursor
-        const cursorDot = new THREE.Mesh(
-            new THREE.CircleGeometry(0.05, 32),
-            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
-        );
-        scene.add(cursorDot);
 
         // === DETECCIÓN DE GESTOS ===
         function detectGesture(hand) {
@@ -524,19 +513,11 @@
             const index = primaryHand[8];
             const thumb = primaryHand[4];
 
-            // Suavizado ultra-rápido con física
-            targetX = (index.x - 0.5) * -15;
-            targetY = (index.y - 0.5) * -10;
-            
-            velocityX = (targetX - smoothX) * config.smoothingFactor;
-            velocityY = (targetY - smoothY) * config.smoothingFactor;
-            
-            smoothX += velocityX;
-            smoothY += velocityY;
+            // Movimiento DIRECTO sin física
+            smoothX = smoothX + ((index.x - 0.5) * -15 - smoothX) * config.smoothingFactor;
+            smoothY = smoothY + ((index.y - 0.5) * -10 - smoothY) * config.smoothingFactor;
             
             cursor.position.set(smoothX, smoothY, 0);
-            cursorDot.position.set(smoothX, smoothY, 0.1);
-            cursorProgress.position.set(smoothX, smoothY, -0.1);
 
             // Mapeo a pantalla
             const screenPos = mapToScreen(index);
@@ -555,7 +536,7 @@
                 setTimeout(() => clickCooldown = false, 400);
             }
 
-            // === HOVER Y MENÚ RADIAL - RÁPIDO ===
+            // === HOVER SIMPLIFICADO ===
             if (card && gesture === 'POINT') {
                 if (card !== lastHovered) {
                     clearTimeout(hoverTimer);
@@ -563,14 +544,6 @@
                     if (lastHovered) lastHovered.classList.remove('hover-effect');
                     lastHovered = card;
                     card.classList.add('hover-effect');
-                    
-                    let progress = 0;
-                    const progressInterval = setInterval(() => {
-                        progress += 0.1;
-                        const angle = progress * Math.PI * 2;
-                        cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, angle);
-                        if (progress >= 1) clearInterval(progressInterval);
-                    }, 25);
 
                     hoverTimer = setTimeout(() => {
                         showRadial(screenPos.x, screenPos.y, card);
@@ -579,7 +552,6 @@
             } else {
                 clearTimeout(hoverTimer);
                 hideRadial();
-                cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0);
                 if (lastHovered && lastHovered !== card) {
                     lastHovered.classList.remove('hover-effect');
                     lastHovered = null;
@@ -683,7 +655,7 @@
                 
                 handTracker.setOptions({
                     maxNumHands: 2,
-                    modelComplexity: 1,
+                    modelComplexity: 0, // LO MÁS BAJO
                     minDetectionConfidence: config.minDetectionConfidence,
                     minTrackingConfidence: config.minTrackingConfidence
                 });
@@ -695,8 +667,8 @@
                     onFrame: async () => {
                         await handTracker.send({ image: videoElement });
                     },
-                    width: 640,
-                    height: 480
+                    width: 320,  // MUY BAJO
+                    height: 240  // MUY BAJO
                 });
 
                 await cam.start();
@@ -713,14 +685,10 @@
             }
         };
 
-        // === ANIMACIÓN ===
+        // === ANIMACIÓN OPTIMIZADA ===
         function animate() {
             requestAnimationFrame(animate);
-            
-            cursor.rotation.z += 0.03;
-            cursorProgress.rotation.z -= 0.04;
-            cursorDot.scale.x = cursorDot.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.2;
-            
+            cursor.rotation.z += 0.05;
             renderer.render(scene, camera3D);
         }
         animate();
