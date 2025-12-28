@@ -2,294 +2,127 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TechStore OS - Cyber Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized OS</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600&display=swap');
-
-        :root {
-            --accent: #00ffcc;
-            --accent-glow: rgba(0, 255, 204, 0.4);
-            --bg: #050505;
-            --card: rgba(20, 20, 20, 0.8);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
-
-        body {
-            background: var(--bg);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            transition: filter 0.5s;
-        }
-
-        /* HUD Superior Estilo Sci-Fi */
-        header {
-            position: fixed; top: 0; width: 100%; padding: 20px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-            z-index: 100; text-align: center;
-        }
-
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 8px;
-            color: var(--accent);
-            text-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        #hud {
-            position: fixed; bottom: 20px; left: 20px;
-            background: rgba(0,0,0,0.6); padding: 15px;
-            border-left: 4px solid var(--accent);
-            font-family: 'Orbitron', sans-serif; font-size: 12px;
-            z-index: 1000; backdrop-filter: blur(5px);
-        }
-
-        /* Grid de Productos con Profundidad */
-        #shop-viewport {
-            perspective: 1000px;
-            height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        #shop-content {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
-            transition: transform 0.1s cubic-bezier(0.2, 0, 0.2, 1);
-        }
-
-        .product-card {
-            background: var(--card);
-            border: 1px solid #333;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            transition: 0.3s;
-            backdrop-filter: blur(10px);
-        }
-
-        .product-card.hover-effect {
-            border-color: var(--accent);
-            transform: translateZ(50px);
-            box-shadow: 0 0 40px var(--accent-glow);
-        }
-
-        /* Menú Radial Pro */
-        #radial-menu {
-            position: fixed; width: 180px; height: 180px;
-            display: none; z-index: 2000; pointer-events: none;
-        }
-
-        .radial-item {
-            position: absolute; width: 50px; height: 50px;
-            background: black; border: 2px solid var(--accent);
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 10px;
-            transform: scale(0); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* UI Elements */
-        #activate-btn {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 20px 40px; font-family: 'Orbitron'; background: var(--accent);
-            border: none; border-radius: 5px; font-weight: bold; z-index: 3000;
-        }
-
-        #input_video {
-            position: fixed; top: 20px; right: 20px; width: 120px;
-            border-radius: 10px; border: 1px solid var(--accent);
-            opacity: 0.4; transform: scaleX(-1);
-        }
-
-        #notifications {
-            position: fixed; top: 100px; right: 20px; z-index: 4000;
-        }
-        .notif {
-            background: rgba(0, 255, 204, 0.2); border: 1px solid var(--accent);
-            padding: 10px 20px; margin-bottom: 10px; animation: slide 0.3s forwards;
-        }
-        @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        :root { --a: #00ffcc; --bg: #050505; }
+        * { margin:0; padding:0; box-sizing:border-box; cursor:none !important; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        /* Capa de Renderizado */
+        #c { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:99; }
+        
+        /* UI Minimalista */
+        #ui { position:relative; z-index:10; display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; padding:100px 50px; }
+        .card { background:#111; padding:30px; border-radius:15px; border:1px solid #222; text-align:center; transition:0.2s; }
+        .card.active { border-color:var(--a); transform: scale(1.05); box-shadow: 0 0 20px rgba(0,255,204,0.2); }
+        
+        #btn { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:100; padding:20px 40px; 
+               background:var(--a); border:none; border-radius:50px; font-weight:bold; cursor:pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        #v { position:fixed; bottom:10px; right:10px; width:100px; height:75px; opacity:0.4; transform:scaleX(-1); border-radius:8px; z-index:5; }
     </style>
 </head>
 <body>
 
-    <button id="activate-btn">INITIALIZE CORE</button>
+    <button id="btn">ACTIVAR CORE</button>
+    <video id="v" playsinline></video>
+    <canvas id="c"></canvas>
 
-    <header><h1>TECH<span style="color:white">STORE</span></h1></header>
-
-    <div id="hud">
-        STATUS: <span id="status" style="color:red">OFFLINE</span><br>
-        GESTURE: <span id="gest-name">---</span><br>
-        VOICE: <span id="voice-status">READY</span>
+    <div id="ui">
+        <div class="card"><h3>NEURAL</h3><p>$100</p></div>
+        <div class="card"><h3>OPTIC</h3><p>$200</p></div>
+        <div class="card"><h3>CYBER</h3><p>$300</p></div>
     </div>
-
-    <div id="notifications"></div>
-
-    <div id="radial-menu">
-        <div class="radial-item" style="top:0; left:65px">BUY</div>
-        <div class="radial-item" style="bottom:0; left:65px">INFO</div>
-        <div class="radial-item" style="top:65px; left:0">SAVE</div>
-        <div class="radial-item" style="top:65px; right:0">EXIT</div>
-    </div>
-
-    <div id="shop-viewport">
-        <div id="shop-content">
-            <div class="product-card"><h3>Neural Link</h3><p>$1.2k</p></div>
-            <div class="product-card"><h3>Cyber Eye</h3><p>$3.5k</p></div>
-            <div class="product-card"><h3>Holo Deck</h3><p>$0.8k</p></div>
-        </div>
-    </div>
-
-    <div id="canvas-container"></div>
-    <video id="input_video" playsinline></video>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        let smoothX = 0, smoothY = 0, zoom = 1, lastDist = 0;
-        let lastHover = null, radialActive = false, hoverTimer;
+        const btn = document.getElementById('btn');
+        const video = document.getElementById('v');
+        let skipFrame = 0;
+        let sx = 0, sy = 0, lastEl = null;
 
-        // --- 1. Audio Engine (Detección Rápida) ---
-        const initVoice = () => {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'es-ES';
-            recognition.continuous = true;
-            recognition.onresult = (e) => {
-                const text = e.results[e.results.length-1][0].transcript.toLowerCase();
-                if(text.includes("click") || text.includes("clic")) executeClick();
-            };
-            recognition.start();
-        };
-
-        // --- 2. Three.js (Cursor con Partículas) ---
+        // --- OPTIMIZACIÓN 1: Scene de bajo consumo ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        const cam3d = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
+        cam3d.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), alpha: true, antialias: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        renderer.setPixelRatio(1); // Forzar 1 para ahorrar GPU en pantallas Retina/4K
 
-        const cursor = new THREE.Group();
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.01, 16, 100), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
-        cursor.add(ring);
-        scene.add(cursor);
+        // Geometría compartida (instanciada en memoria)
+        const dot = new THREE.Mesh(
+            new THREE.SphereGeometry(0.12, 16, 16), 
+            new THREE.MeshBasicMaterial({ color: 0x00ffcc })
+        );
+        scene.add(dot);
 
-        // --- 3. Lógica de Gestos Pro ---
-        const getGesture = (hand) => {
-            const index = hand[8], thumb = hand[4], middle = hand[12];
-            const distIndex = Math.hypot(index.x-thumb.x, index.y-thumb.y);
-            const distMid = Math.hypot(middle.x-thumb.x, middle.y-thumb.y);
-            
-            if(distIndex < 0.05) return 'PINCH';
-            if(distMid < 0.05) return 'SCROLL';
-            if(index.y < hand[5].y && middle.y > hand[9].y) return 'POINT';
-            return 'NAV';
-        };
+        // --- OPTIMIZACIÓN 2: Procesamiento de IA Eficiente ---
+        function onResults(res) {
+            // Saltamos cada 2 cuadros para liberar CPU (30fps de IA es suficiente para 60fps de visual)
+            skipFrame++;
+            if (skipFrame % 2 !== 0) return; 
 
-        function onResults(results) {
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const h1 = results.multiHandLandmarks[0];
-                const gesture = getGesture(h1);
-                document.getElementById('gest-name').textContent = gesture;
-
-                // Suavizado de movimiento (EMA)
-                const tx = (h1[8].x - 0.5) * -16;
-                const ty = (h1[8].y - 0.5) * -12;
-                smoothX += (tx - smoothX) * 0.2;
-                smoothY += (ty - smoothY) * 0.2;
-                cursor.position.set(smoothX, smoothY, 0);
-
-                // Detección de Colisión
-                const sx = (0.5 - (h1[8].x - 0.5) * 2.5) * window.innerWidth;
-                const sy = (0.5 + (h1[8].y - 0.5) * 2.5) * window.innerHeight;
-                const el = document.elementFromPoint(sx, sy);
-                const card = el ? el.closest('.product-card') : null;
-
-                if (card !== lastHover) {
-                    if (lastHover) lastHover.classList.remove('hover-effect');
-                    if (card) {
-                        card.classList.add('hover-effect');
-                        hoverTimer = setTimeout(() => openRadial(sx, sy), 800);
-                    } else {
-                        clearTimeout(hoverTimer);
-                        closeRadial();
-                    }
-                    lastHover = card;
-                }
-
-                if(gesture === 'PINCH') executeClick();
+            if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
+                const h = res.multiHandLandmarks[0][8];
                 
-                // Soporte Multitouch para Zoom
-                if(results.multiHandLandmarks.length === 2) {
-                    const h2 = results.multiHandLandmarks[1];
-                    const d = Math.hypot(h1[8].x - h2[8].x, h1[8].y - h2[8].y);
-                    if(lastDist > 0) {
-                        zoom += (d - lastDist) * 3;
-                        document.getElementById('shop-content').style.transform = `scale(${Math.min(2, Math.max(0.5, zoom))})`;
-                    }
-                    lastDist = d;
-                } else { lastDist = 0; }
+                // Suavizado cinemático (Lerp)
+                const tx = (h.x - 0.5) * -14;
+                const ty = (h.y - 0.5) * -10;
+                sx += (tx - sx) * 0.25; 
+                sy += (ty - sy) * 0.25;
+                dot.position.set(sx, sy, 0);
+
+                // Hitbox detection optimizada
+                const px = (0.5 - (h.x - 0.5) * 2.5) * window.innerWidth;
+                const py = (0.5 + (h.y - 0.5) * 2.5) * window.innerHeight;
+                const el = document.elementFromPoint(px, py)?.closest('.card');
+
+                if (el !== lastEl) {
+                    if (lastEl) lastEl.classList.remove('active');
+                    if (el) el.classList.add('active');
+                    lastEl = el;
+                }
             }
         }
 
-        function executeClick() {
-            if(lastHover) {
-                lastHover.style.background = '#00ffcc22';
-                setTimeout(() => lastHover.style.background = '', 200);
-                notify(`COMPRADO: ${lastHover.querySelector('h3').innerText}`);
-            }
-            ring.scale.set(1.5, 1.5, 1);
-            setTimeout(() => ring.scale.set(1, 1, 1), 200);
-        }
-
-        function openRadial(x, y) {
-            const r = document.getElementById('radial-menu');
-            r.style.display = 'block';
-            r.style.left = (x - 90) + 'px';
-            r.style.top = (y - 90) + 'px';
-            setTimeout(() => document.querySelectorAll('.radial-item').forEach(i => i.style.transform = 'scale(1)'), 50);
-        }
-
-        function closeRadial() {
-            document.querySelectorAll('.radial-item').forEach(i => i.style.transform = 'scale(0)');
-            setTimeout(() => document.getElementById('radial-menu').style.display = 'none', 300);
-        }
-
-        function notify(msg) {
-            const n = document.createElement('div');
-            n.className = 'notif';
-            n.innerText = msg;
-            document.getElementById('notifications').appendChild(n);
-            setTimeout(() => n.remove(), 3000);
-        }
-
-        // --- 4. Boot ---
-        document.getElementById('activate-btn').onclick = async function() {
-            this.style.display = 'none';
-            document.getElementById('status').innerText = 'ONLINE';
-            document.getElementById('status').style.color = 'var(--accent)';
+        // --- OPTIMIZACIÓN 3: Inicialización Controlada ---
+        btn.onclick = async () => {
+            btn.style.display = 'none';
             
-            const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-            hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7 });
+            const hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+            hands.setOptions({ 
+                maxNumHands: 1, 
+                modelComplexity: 0, // 0 = Lite (Más rápido), 1 = Full
+                minDetectionConfidence: 0.6 
+            });
             hands.onResults(onResults);
 
-            new Camera(document.getElementById('input_video'), {
-                onFrame: async () => { await hands.send({image: document.getElementById('input_video')}); },
-                width: 640, height: 480
-            }).start();
-            
-            initVoice();
+            const cam = new Camera(video, {
+                onFrame: async () => { 
+                    if (!document.hidden) await hands.send({image: video}); 
+                },
+                width: 480, height: 360 // Resolución menor para procesamiento ultra rápido
+            });
+            cam.start();
         };
 
-        function animate() { 
-            requestAnimationFrame(animate); 
-            ring.rotation.y += 0.05;
-            renderer.render(scene, camera); 
+        // Loop de Renderizado de alta frecuencia (60fps)
+        function anim() {
+            requestAnimationFrame(anim);
+            renderer.render(scene, cam3d);
         }
-        animate();
+        anim();
+
+        window.onresize = () => {
+            cam3d.aspect = window.innerWidth / window.innerHeight;
+            cam3d.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
     </script>
 </body>
 </html>
