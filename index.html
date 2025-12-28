@@ -3,43 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Air Mouse - Alta Sensibilidad</title>
+    <title>Air Mouse - Voz + Gestos</title>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: white; overflow-y: auto; height: 200vh; touch-action: none; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: white; overflow: hidden; height: 100vh; }
         
-        #ui-panel {
-            position: fixed; top: 10px; left: 10px; z-index: 100;
-            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 15px;
-            border: 1px solid #00ffcc; width: 180px;
+        #hud {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            padding: 10px 25px; background: rgba(0,255,204,0.15); border-radius: 50px;
+            border: 1px solid #00ffcc; color: #00ffcc; z-index: 100; text-align: center;
+        }
+
+        .btn-box {
+            display: flex; flex-direction: column; align-items: center; gap: 20px; padding-top: 120px;
         }
 
         .interactive-btn {
-            width: 90%; max-width: 350px; padding: 25px; margin: 10px auto;
-            background: #222; border-radius: 15px; border: 2px solid #333;
-            color: white; font-size: 1.1rem; text-align: center; transition: 0.2s;
+            width: 80%; max-width: 300px; padding: 30px; background: #1a1a1a;
+            border: 2px solid #333; border-radius: 20px; color: white; font-size: 1.2rem;
+            transition: 0.2s; cursor: pointer;
         }
-        .interactive-btn.hover-effect { border-color: #00ffcc; background: rgba(0,255,204,0.1); }
+        .interactive-btn.hover-effect { border-color: #00ffcc; transform: scale(1.05); box-shadow: 0 0 20px rgba(0,255,204,0.3); }
 
         #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        #input_video { position: fixed; bottom: 10px; right: 10px; width: 80px; border-radius: 5px; transform: scaleX(-1); opacity: 0.3; }
-        
-        input[type=range] { width: 100%; accent-color: #00ffcc; }
+        #input_video { position: fixed; bottom: 10px; right: 10px; width: 80px; opacity: 0.3; transform: scaleX(-1); }
     </style>
 </head>
 <body>
 
-    <div id="ui-panel">
-        <div style="font-size: 0.8rem; margin-bottom: 5px; color: #00ffcc;">SENSIBILIDAD: <span id="sens-val">2.0</span></div>
-        <input type="range" id="sensRange" min="1.0" max="4.0" step="0.1" value="2.0">
-        <div style="font-size: 0.7rem; margin-top: 10px; opacity: 0.7;">Pellizco Índice: Click<br>Pellizco Medio: Scroll</div>
-    </div>
+    <div id="hud">🎤 Di "CLICK" para activar | 🖐️ Navega</div>
 
-    <div id="web-content" style="padding-top: 80px; display: flex; flex-direction: column; align-items: center;">
-        <button class="interactive-btn" onclick="alert('Esquina Superior')">Botón Superior</button>
-        <div style="height: 300px;"></div>
-        <button class="interactive-btn" onclick="alert('Botón Central')">Botón Central</button>
-        <div style="height: 300px;"></div>
-        <button class="interactive-btn" onclick="alert('Esquina Inferior')">Botón Inferior</button>
+    <div class="btn-box">
+        <button class="interactive-btn" onclick="alert('Acción por VOZ 1')">Botón Alpha</button>
+        <button class="interactive-btn" onclick="alert('Acción por VOZ 2')">Botón Beta</button>
+        <button class="interactive-btn" onclick="document.body.style.background='#1a0033'">Cambiar Color</button>
     </div>
 
     <div id="canvas-container"></div>
@@ -50,12 +46,36 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        let SENSITIVITY = 2.0;
-        document.getElementById('sensRange').oninput = (e) => {
-            SENSITIVITY = parseFloat(e.target.value);
-            document.getElementById('sens-val').innerText = SENSITIVITY.toFixed(1);
+        // --- 1. RECONOCIMIENTO DE VOZ ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        recognition.continuous = true;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            console.log("Voz detectada:", transcript);
+
+            if (transcript.includes("click") || transcript.includes("clic")) {
+                executeVoiceClick();
+            }
         };
 
+        // Reiniciar si se detiene automáticamente
+        recognition.onend = () => recognition.start();
+        recognition.start();
+
+        function executeVoiceClick() {
+            if (lastHovered) {
+                lastHovered.click();
+                cursorMat.color.set(0xff0000); // Flash rojo
+                setTimeout(() => cursorMat.color.set(0x00ffcc), 300);
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+        }
+
+        // --- 2. THREE.JS & HANDS (Optimizado) ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera.position.z = 5;
@@ -63,62 +83,31 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        const cursor = new THREE.Mesh(
-            new THREE.RingGeometry(0.07, 0.1, 32),
-            new THREE.MeshBasicMaterial({ color: 0x00ffcc, depthTest: false })
-        );
+        const cursorMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, depthTest: false });
+        const cursor = new THREE.Mesh(new THREE.RingGeometry(0.08, 0.11, 32), cursorMat);
         scene.add(cursor);
 
-        let isLeftPinching = false, isMiddlePinching = false, lastScrollY = 0, lastHover = null;
-        let mouseX = 0, mouseY = 0;
+        let lastHovered = null;
+        let SENSITIVITY = 2.5;
 
         function onResults(results) {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const hand = results.multiHandLandmarks[0];
-                const index = hand[8], thumb = hand[4], middle = hand[12];
-
-                // --- NUEVO MAPEO DINÁMICO ---
-                // Calculamos el desfase desde el centro de la cámara
+                const index = hand[8];
+                
                 const dx = index.x - 0.5;
                 const dy = index.y - 0.5;
 
-                // Amplificamos el movimiento y lo mapeamos a la pantalla
-                // Clampeamos (limitamos) para que el cursor no desaparezca demasiado lejos
-                const screenX = Math.max(0, Math.min(window.innerWidth, (0.5 - dx * SENSITIVITY) * window.innerWidth));
-                const screenY = Math.max(0, Math.min(window.innerHeight, (0.5 + dy * SENSITIVITY) * window.innerHeight));
+                const screenX = (0.5 - dx * SENSITIVITY) * window.innerWidth;
+                const screenY = (0.5 + dy * SENSITIVITY) * window.innerHeight;
 
-                // Posición Three.js (Ajustada a la sensibilidad)
-                mouseX = (dx * SENSITIVITY) * -15;
-                mouseY = (dy * SENSITIVITY) * -15;
-                cursor.position.lerp(new THREE.Vector3(mouseX, mouseY, 0), 0.3);
+                cursor.position.lerp(new THREE.Vector3(dx * SENSITIVITY * -15, dy * SENSITIVITY * -15, 0), 0.3);
 
-                // Lógica de elementos
                 const el = document.elementFromPoint(screenX, screenY);
-                if (el !== lastHover) {
-                    if (lastHover) lastHover.classList.remove('hover-effect');
+                if (el !== lastHovered) {
+                    if (lastHovered) lastHovered.classList.remove('hover-effect');
                     if (el && el.classList.contains('interactive-btn')) el.classList.add('hover-effect');
-                    lastHover = el;
-                }
-
-                // Gestos
-                const dIdx = Math.hypot(index.x-thumb.x, index.y-thumb.y);
-                const dMid = Math.hypot(middle.x-thumb.x, middle.y-thumb.y);
-
-                if (dMid < 0.05) { // SCROLL con Medio
-                    if (!isMiddlePinching) { isMiddlePinching = true; lastScrollY = middle.y; }
-                    window.scrollBy(0, (middle.y - lastScrollY) * 3000);
-                    lastScrollY = middle.y;
-                    cursor.material.color.set(0xff00ff);
-                } else if (dIdx < 0.05) { // CLICK con Índice
-                    if (!isLeftPinching) { 
-                        isLeftPinching = true; 
-                        cursor.scale.set(0.7, 0.7, 1);
-                        if (navigator.vibrate) navigator.vibrate(10);
-                        if (el) el.click();
-                    }
-                } else {
-                    isLeftPinching = false; isMiddlePinching = false;
-                    cursor.scale.set(1, 1, 1); cursor.material.color.set(0x00ffcc);
+                    lastHovered = el;
                 }
             }
         }
