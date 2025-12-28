@@ -3,45 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hand Particles Mobile</title>
+    <title>Air Mouse - Partículas Interactivas</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; position: fixed; width: 100%; height: 100%; font-family: sans-serif; }
-        canvas { display: block; touch-action: none; }
+        /* 1. La Página Web de fondo */
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; overflow: hidden; }
         
-        #ui {
-            position: absolute; top: 10px; left: 10px; z-index: 100;
-            background: rgba(0,0,0,0.6); padding: 15px; border-radius: 12px;
-            color: white; width: 140px; backdrop-filter: blur(5px);
+        #web-content {
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 1;
         }
-        select, input { width: 100%; margin-top: 5px; margin-bottom: 10px; border-radius: 5px; }
 
-        /* Escondemos el video pero lo mantenemos activo */
-        #input_video {
-            position: absolute; bottom: 10px; right: 10px;
-            width: 100px; height: auto; border: 2px solid #00ffcc;
-            border-radius: 8px; transform: scaleX(-1);
-            z-index: 50; pointer-events: none;
+        .btn-test {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 10px;
+            background: #444;
+            color: white;
+            transition: all 0.3s;
+            cursor: pointer;
         }
-        #loading {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #00ffcc; z-index: 200; text-align: center;
+        
+        /* Estilo para cuando el mouse virtual está encima */
+        .btn-test.hover { background: #00ffcc; color: black; transform: scale(1.1); }
+        .btn-test:active { background: #ff0055; }
+
+        /* 2. El Lienzo de Partículas (Transparente y encima) */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; /* Deja que el click pase a través */
+            z-index: 10;
+        }
+
+        #input_video {
+            position: fixed; bottom: 10px; right: 10px;
+            width: 120px; border: 2px solid #00ffcc; border-radius: 10px;
+            transform: scaleX(-1); z-index: 100;
+        }
+
+        #cursor-status {
+            position: fixed; top: 10px; width: 100%; text-align: center;
+            font-weight: bold; color: #00ffcc; text-shadow: 0 0 10px black;
         }
     </style>
 </head>
 <body>
 
-    <div id="loading">Cargando IA...<br>Espera un momento</div>
-
-    <div id="ui">
-        <label>Forma:</label>
-        <select id="shape">
-            <option value="heart">Corazón</option>
-            <option value="flower">Flor</option>
-            <option value="saturn">Saturno</option>
-        </select>
-        <input type="color" id="color" value="#00ffcc">
+    <div id="web-content">
+        <h1>Navegador Espacial</h1>
+        <p>Mueve tu mano para controlar el cursor de partículas.</p>
+        <button class="btn-test" onclick="alert('¡Botón 1 Clicked!')">BOTÓN MÁGICO 1</button>
+        <button class="btn-test" onclick="alert('¡Botón 2 Clicked!')">BOTÓN MÁGICO 2</button>
+        <button class="btn-test" onclick="this.style.borderRadius='50%'">REDONDEARME</button>
+        <div id="debug" style="font-size: 0.8rem; color: gray;">Esperando cámara...</div>
     </div>
 
+    <div id="cursor-status">🖐️ MANO ABIERTA (Mover)</div>
+    <div id="canvas-container"></div>
     <video id="input_video" playsinline></video>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
@@ -49,113 +73,97 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        const videoElement = document.getElementById('input_video');
-        const loading = document.getElementById('loading');
-
-        // --- ESCENA THREE.JS ---
+        // --- CONFIGURACIÓN THREE.JS ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
-        renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1); // Optimización para móvil
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         camera.position.z = 5;
 
-        const particleCount = 2500; // Reducido para mejor rendimiento móvil
+        // Partículas del cursor
+        const partCount = 500;
         const geo = new THREE.BufferGeometry();
-        const pos = new Float32Array(particleCount * 3);
-        const targetPos = new Float32Array(particleCount * 3);
+        const pos = new Float32Array(partCount * 3);
+        for(let i=0; i<partCount*3; i++) pos[i] = (Math.random()-0.5) * 2;
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 
-        const mat = new THREE.PointsMaterial({
-            size: 0.04, color: 0x00ffcc, transparent: true, blending: THREE.AdditiveBlending
-        });
-        const points = new THREE.Points(geo, mat);
-        scene.add(points);
+        const mat = new THREE.PointsMaterial({ size: 0.05, color: 0x00ffcc, transparent: true, blending: THREE.AdditiveBlending });
+        const particles = new THREE.Points(geo, mat);
+        scene.add(particles);
 
-        // --- GENERADOR DE FORMAS ---
-        function setShape(type) {
-            for (let i = 0; i < particleCount; i++) {
-                let x, y, z = 0;
-                const t = Math.random() * Math.PI * 2;
-                if (type === 'heart') {
-                    x = 16 * Math.pow(Math.sin(t), 3) * 0.1;
-                    y = (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * 0.1;
-                } else if (type === 'flower') {
-                    const r = 1.5 * Math.cos(5 * t);
-                    x = r * Math.sin(t); y = r * Math.cos(t);
-                } else { // Saturno
-                    if (i < particleCount * 0.5) {
-                        x = Math.cos(t) * Math.sin(Math.random()*Math.PI) * 1.2;
-                        y = Math.sin(t) * Math.sin(Math.random()*Math.PI) * 1.2;
-                    } else {
-                        const r = 1.8 + Math.random() * 0.5;
-                        x = Math.cos(t) * r; y = Math.sin(t) * r * 0.3;
-                    }
-                }
-                targetPos[i*3] = x; targetPos[i*3+1] = y; targetPos[i*3+2] = z;
-            }
-        }
-        setShape('heart');
-
-        // --- CONTROL DE MANOS ---
-        let hX = 0, hY = 0, hScale = 1;
+        // --- LÓGICA DE CONTROL ---
+        let mouseX = 0, mouseY = 0;
+        let isClosed = false;
+        let lastElement = null;
 
         function onResults(results) {
-            loading.style.display = 'none';
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const hand = results.multiHandLandmarks[0];
-                
-                // Seguimiento suavizado
-                hX = THREE.MathUtils.lerp(hX, (hand[8].x - 0.5) * -8, 0.2);
-                hY = THREE.MathUtils.lerp(hY, (hand[8].y - 0.5) * -8, 0.2);
+                const indexTip = hand[8];
+                const thumbTip = hand[4];
 
-                // Gesto de escala: Pulgar (4) e Índice (8)
-                const dist = Math.hypot(hand[4].x - hand[8].x, hand[4].y - hand[8].y);
-                hScale = THREE.MathUtils.lerp(hScale, dist * 8, 0.1);
+                // Convertir coordenadas de cámara a coordenadas de pantalla (píxeles)
+                const screenX = (1 - indexTip.x) * window.innerWidth;
+                const screenY = indexTip.y * window.innerHeight;
+
+                // Mover partículas de Three.js
+                mouseX = (indexTip.x - 0.5) * -10;
+                mouseY = (indexTip.y - 0.5) * -10;
+
+                // DETECTAR CLICK (Distancia entre pulgar e índice)
+                const dist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+                const closedNow = dist < 0.05;
+
+                // Simular Hover
+                const element = document.elementFromPoint(screenX, screenY);
+                if (element !== lastElement) {
+                    if (lastElement) lastElement.classList.remove('hover');
+                    if (element && element.classList.contains('btn-test')) element.classList.add('hover');
+                    lastElement = element;
+                }
+
+                // Disparar Click Real
+                if (closedNow && !isClosed) {
+                    document.getElementById('cursor-status').innerText = "✊ ¡CLICK!";
+                    mat.color.set(0xff0055);
+                    if (element) element.click();
+                } else if (!closedNow && isClosed) {
+                    document.getElementById('cursor-status').innerText = "🖐️ MANO ABIERTA";
+                    mat.color.set(0x00ffcc);
+                }
+                isClosed = closedNow;
+                document.getElementById('debug').innerText = `X: ${Math.round(screenX)} Y: ${Math.round(screenY)}`;
             }
         }
 
-        const hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-        });
-
-        hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.5 });
+        // --- INICIAR MEDIAPIPE ---
+        const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7 });
         hands.onResults(onResults);
 
+        const videoElement = document.getElementById('input_video');
         const cameraFeed = new Camera(videoElement, {
             onFrame: async () => { await hands.send({image: videoElement}); },
-            width: 480, height: 480
+            width: 480, height: 360
         });
         cameraFeed.start();
-
-        // --- INTERFAZ ---
-        document.getElementById('shape').onchange = (e) => setShape(e.target.value);
-        document.getElementById('color').oninput = (e) => mat.color.set(e.target.value);
 
         // --- RENDER ---
         function animate() {
             requestAnimationFrame(animate);
-            const positions = points.geometry.attributes.position.array;
-            for (let i = 0; i < particleCount; i++) {
-                const i3 = i * 3;
-                // Las partículas se mueven hacia el objetivo (target) influenciadas por la mano
-                positions[i3] += (targetPos[i3] * hScale + hX - positions[i3]) * 0.1;
-                positions[i3+1] += (targetPos[i3+1] * hScale + hY - positions[i3+1]) * 0.1;
-                positions[i3+2] += (targetPos[i3+2] - positions[i3+2]) * 0.1;
-            }
-            points.geometry.attributes.position.needsUpdate = true;
-            points.rotation.y += 0.01;
+            particles.position.x += (mouseX - particles.position.x) * 0.2;
+            particles.position.y += (mouseY - particles.position.y) * 0.2;
+            particles.rotation.z += 0.02;
+            
+            // Efecto de escala al hacer click
+            const targetScale = isClosed ? 0.5 : 1.0;
+            particles.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.2);
+
             renderer.render(scene, camera);
         }
         animate();
-
-        window.onresize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
     </script>
 </body>
 </html>
