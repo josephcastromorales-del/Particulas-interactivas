@@ -5,72 +5,712 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TechStore OS - Advanced Interface</title>
     <style>
-        :root { --accent: #00ffcc; --bg: #0a0a0a; --card: #151515; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; transition: filter 0.5s, background 0.5s; overflow: hidden; height: 100vh; }
-        
-        /* Modo Nocturno Dinámico */
-        body.dark-mode { filter: brightness(0.3) contrast(1.2); background: #000; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
 
-        header { padding: 20px; text-align: center; border-bottom: 1px solid #222; }
-        
-        #shop-viewport { 
-            height: 80vh; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        :root {
+            --accent: #00ffcc;
+            --accent-2: #ff00ff;
+            --accent-3: #ffcc00;
+            --bg: #0a0a0a;
+            --card: #151515;
+            --text: #ffffff;
+            --glass: rgba(255, 255, 255, 0.05);
         }
-        
-        #shop-content { 
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 40px;
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: var(--text);
+            transition: filter 0.5s, background 0.5s;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Partículas de fondo */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-100vh) translateX(50px); }
+        }
+
+        /* Modo Nocturno Mejorado */
+        body.dark-mode {
+            filter: brightness(0.4) contrast(1.3);
+            background: linear-gradient(135deg, #000000 0%, #0a0a1e 100%);
+        }
+        body.dark-mode .particle { opacity: 0.1; }
+
+        /* Header con efectos */
+        header {
+            padding: 25px;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            background: linear-gradient(90deg, transparent, var(--glass), transparent);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 30px rgba(0, 255, 204, 0.1);
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            font-weight: 900;
+            letter-spacing: 5px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 10px var(--accent)); }
+            50% { filter: drop-shadow(0 0 30px var(--accent-2)); }
+        }
+
+        /* Sistema de pestañas */
+        #tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            z-index: 10;
+            position: relative;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--card), #1a1a1a);
+            border: 2px solid #333;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .tab:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.3);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #000;
+            border-color: transparent;
+        }
+
+        /* Viewport de productos mejorado */
+        #shop-viewport {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 40px;
+            position: relative;
+            z-index: 5;
+            scroll-behavior: smooth;
+        }
+
+        #shop-viewport::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #shop-viewport::-webkit-scrollbar-track {
+            background: var(--card);
+        }
+
+        #shop-viewport::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        #shop-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
             transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
             transform-origin: center;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
+        /* Cards de productos mejoradas */
         .product-card {
-            background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #333;
-            text-align: center; width: 200px; transition: 0.3s;
+            background: linear-gradient(135deg, var(--card) 0%, #1a1a1a 100%);
+            border-radius: 25px;
+            padding: 25px;
+            border: 2px solid #333;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
-        .product-card.hover-effect { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,255,204,0.2); }
 
-        /* Menú Radial HTML */
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, var(--accent), transparent);
+            transform: rotate(45deg);
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .product-card:hover::before {
+            animation: shine 1.5s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .product-card.hover-effect {
+            border-color: var(--accent);
+            box-shadow: 0 10px 50px rgba(0, 255, 204, 0.4);
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .product-card.selected {
+            border-color: var(--accent-2);
+            box-shadow: 0 0 40px var(--accent-2);
+        }
+
+        .product-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--accent));
+        }
+
+        .product-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            margin: 15px 0;
+            color: var(--accent);
+        }
+
+        .product-card p {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--text);
+            margin: 10px 0;
+        }
+
+        .product-card .description {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .product-card .stock {
+            display: inline-block;
+            padding: 5px 15px;
+            background: var(--accent);
+            color: #000;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Menú Radial Mejorado */
         #radial-menu {
-            position: fixed; width: 150px; height: 150px; pointer-events: none;
-            display: none; z-index: 1000;
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 204, 0.5));
         }
+
         .radial-item {
-            position: absolute; width: 40px; height: 40px; background: var(--accent);
-            border-radius: 50%; color: black; display: flex; align-items: center;
-            justify-content: center; font-size: 10px; font-weight: bold;
-            transition: 0.3s; transform: scale(0);
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-radius: 50%;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: scale(0);
+            cursor: pointer;
+            border: 3px solid #000;
+            pointer-events: auto;
         }
 
+        .radial-item:hover {
+            transform: scale(1.2) !important;
+            background: linear-gradient(135deg, var(--accent-3), var(--accent));
+        }
+
+        /* Panel lateral de información */
+        #info-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(26, 26, 46, 0.95));
+            backdrop-filter: blur(20px);
+            border-left: 2px solid var(--accent);
+            padding: 30px;
+            z-index: 2000;
+            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            overflow-y: auto;
+            box-shadow: -5px 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        #info-panel.active {
+            right: 0;
+        }
+
+        #info-panel h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        #info-panel .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        #info-panel .close-btn:hover {
+            transform: rotate(90deg);
+            background: var(--accent-2);
+        }
+
+        /* Carrito de compras */
+        #cart {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1500;
+            transition: 0.3s;
+            box-shadow: 0 5px 30px rgba(0, 255, 204, 0.5);
+        }
+
+        #cart:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        #cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 25px;
+            height: 25px;
+            background: var(--accent-3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            font-size: 0.8em;
+        }
+
+        /* Botón de activación mejorado */
         #activate-btn {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 2000; padding: 15px 40px; background: var(--accent);
-            border: none; border-radius: 50px; font-weight: bold; cursor: pointer;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 255, 204, 0.5);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            color: #000;
         }
 
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; }
-        #input_video { position: fixed; top: 10px; right: 10px; width: 80px; opacity: 0.3; transform: scaleX(-1); border-radius: 10px; }
+        #activate-btn:hover {
+            transform: translateX(-50%) translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 255, 204, 0.7);
+        }
+
+        /* HUD de información */
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 1px solid var(--accent);
+            z-index: 1000;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+        }
+
+        #hud div {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #hud .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Notificaciones */
+        #notifications {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.2), rgba(255, 0, 255, 0.2));
+            backdrop-filter: blur(20px);
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 2px solid var(--accent);
+            color: var(--text);
+            animation: slideIn 0.5s ease-out;
+            min-width: 250px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Canvas y video */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        #input_video {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 100px;
+            opacity: 0.5;
+            transform: scaleX(-1);
+            border-radius: 15px;
+            border: 2px solid var(--accent);
+            z-index: 1000;
+            transition: 0.3s;
+        }
+
+        #input_video:hover {
+            opacity: 1;
+            width: 200px;
+            height: 133px;
+        }
+
+        /* Filtros de productos */
+        #filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background: var(--card);
+            border: 2px solid #333;
+            border-radius: 20px;
+            color: var(--text);
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #000;
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: transparent;
+        }
+
+        /* Búsqueda */
+        #search-bar {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        #search-input {
+            width: 500px;
+            padding: 15px 50px 15px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #333;
+            border-radius: 50px;
+            color: var(--text);
+            font-size: 1em;
+            transition: 0.3s;
+        }
+
+        #search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+        }
+
+        #search-btn {
+            position: absolute;
+            right: calc(50% - 230px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #000;
+            transition: 0.3s;
+        }
+
+        #search-btn:hover {
+            background: var(--accent-2);
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            #shop-content {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            #info-panel {
+                width: 100%;
+                right: -100%;
+            }
+            
+            #search-input {
+                width: 90%;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <button id="activate-btn">INICIALIZAR SISTEMA</button>
+    <!-- Partículas de fondo -->
+    <div id="particles"></div>
 
-    <div id="radial-menu">
-        <div class="radial-item" style="top:0; left:55px;">INFO</div>
-        <div class="radial-item" style="bottom:0; left:55px;">SAVE</div>
-        <div class="radial-item" style="top:55px; right:0;">BUY</div>
+    <!-- HUD de información -->
+    <div id="hud">
+        <div><span class="indicator"></span> Sistema: <span id="status">Inactivo</span></div>
+        <div>Gesto: <span id="gesture-display">---</span></div>
+        <div>FPS: <span id="fps-display">0</span></div>
     </div>
 
-    <header><h1>TECH<span style="color:var(--accent)">OS</span></h1></header>
+    <!-- Notificaciones -->
+    <div id="notifications"></div>
 
+    <!-- Botón de activación -->
+    <button id="activate-btn">🚀 INICIALIZAR SISTEMA</button>
+
+    <!-- Menú radial -->
+    <div id="radial-menu">
+        <div class="radial-item" style="top:10px; left:72px;">ℹ️ INFO</div>
+        <div class="radial-item" style="bottom:10px; left:72px;">💾 SAVE</div>
+        <div class="radial-item" style="top:72px; right:10px;">🛒 BUY</div>
+        <div class="radial-item" style="top:72px; left:10px;">❤️ FAV</div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <h1>TECH<span style="color:var(--accent)">STORE</span> OS</h1>
+    </header>
+
+    <!-- Sistema de pestañas -->
+    <div id="tabs">
+        <div class="tab active" data-category="all">Todos</div>
+        <div class="tab" data-category="audio">Audio</div>
+        <div class="tab" data-category="visual">Visual</div>
+        <div class="tab" data-category="mobile">Móvil</div>
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <div id="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar productos...">
+        <button id="search-btn">🔍</button>
+    </div>
+
+    <!-- Filtros -->
+    <div id="filters">
+        <button class="filter-btn active" data-sort="default">Por Defecto</button>
+        <button class="filter-btn" data-sort="price-asc">Precio ↑</button>
+        <button class="filter-btn" data-sort="price-desc">Precio ↓</button>
+        <button class="filter-btn" data-sort="name">Nombre</button>
+    </div>
+
+    <!-- Viewport de productos -->
     <div id="shop-viewport">
         <div id="shop-content">
-            <div class="product-card interactive"><h3>Pod Pro</h3><p>$200</p></div>
-            <div class="product-card interactive"><h3>VR Glass</h3><p>$500</p></div>
-            <div class="product-card interactive"><h3>Drone X</h3><p>$800</p></div>
+            <div class="product-card" data-category="audio" data-price="200">
+                <div class="product-icon">🎧</div>
+                <h3>AirPod Pro</h3>
+                <p>$200</p>
+                <p class="description">Cancelación de ruido activa y sonido espacial</p>
+                <span class="stock">En Stock: 15</span>
+            </div>
+            <div class="product-card" data-category="visual" data-price="500">
+                <div class="product-icon">🥽</div>
+                <h3>VR Glass Pro</h3>
+                <p>$500</p>
+                <p class="description">Realidad virtual de última generación</p>
+                <span class="stock">En Stock: 8</span>
+            </div>
+            <div class="product-card" data-category="mobile" data-price="800">
+                <div class="product-icon">🚁</div>
+                <h3>Drone X Pro</h3>
+                <p>$800</p>
+                <p class="description">4K camera con estabilización gimbal</p>
+                <span class="stock">En Stock: 5</span>
+            </div>
+            <div class="product-card" data-category="audio" data-price="350">
+                <div class="product-icon">🔊</div>
+                <h3>SoundBar Ultra</h3>
+                <p>$350</p>
+                <p class="description">Audio inmersivo 7.1 surround</p>
+                <span class="stock">En Stock: 12</span>
+            </div>
+            <div class="product-card" data-category="visual" data-price="1200">
+                <div class="product-icon">📱</div>
+                <h3>Phone 15 Pro</h3>
+                <p>$1200</p>
+                <p class="description">Chip A17 Pro y cámara titanio</p>
+                <span class="stock">En Stock: 20</span>
+            </div>
+            <div class="product-card" data-category="mobile" data-price="450">
+                <div class="product-icon">⌚</div>
+                <h3>SmartWatch Elite</h3>
+                <p>$450</p>
+                <p class="description">Monitoreo salud y GPS integrado</p>
+                <span class="stock">En Stock: 25</span>
+            </div>
         </div>
     </div>
 
+    <!-- Panel de información -->
+    <div id="info-panel">
+        <button class="close-btn">✕</button>
+        <h2 id="info-title">Producto</h2>
+        <div id="info-content">
+            <p>Selecciona un producto para ver más detalles</p>
+        </div>
+    </div>
+
+    <!-- Carrito -->
+    <div id="cart">
+        <span style="font-size: 2em;">🛒</span>
+        <div id="cart-count">0</div>
+    </div>
+
+    <!-- Canvas y video -->
     <div id="canvas-container"></div>
     <video id="input_video" playsinline></video>
 
@@ -79,11 +719,44 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        let smoothX = 0, smoothY = 0, zoomLevel = 1, lastDist = 0;
-        let hoverTimer, radialActive = false;
-        let lastHovered = null;
+        // === ESTADO DEL SISTEMA ===
+        let smoothX = 0, smoothY = 0, smoothVelX = 0, smoothVelY = 0;
+        let zoomLevel = 1, lastDist = 0, rotationAngle = 0;
+        let hoverTimer, radialActive = false, lastHovered = null;
+        let clickCooldown = false, gestureHistory = [];
+        let fps = 0, lastTime = performance.now();
+        let cartItems = [];
+        let favorites = [];
+        let currentGesture = 'NONE';
 
-        // --- Three.js Engine ---
+        // === CONFIGURACIÓN ===
+        const config = {
+            smoothingFactor: 0.25,
+            hoverDelay: 800,
+            clickThreshold: 30,
+            pinchThreshold: 0.05,
+            swipeThreshold: 0.15,
+            zoomSensitivity: 3,
+            maxZoom: 2.5,
+            minZoom: 0.6
+        };
+
+        // === PARTÍCULAS DE FONDO ===
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // === THREE.JS SETUP ===
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         camera.position.z = 5;
@@ -93,104 +766,70 @@
 
         const cursor = new THREE.Mesh(
             new THREE.RingGeometry(0.1, 0.13, 32),
-            new THREE.MeshBasicMaterial({ color: 0x00ffcc })
+            new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.8 })
+        );
+        const cursorProgress = new THREE.Mesh(
+            new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0),
+            new THREE.MeshBasicMaterial({ color: 0xff00ff })
         );
         scene.add(cursor);
+        scene.add(cursorProgress);
 
-        // --- Lógica de Procesamiento ---
+        // === UTILIDADES ===
+        function distance(p1, p2) {
+            return Math.hypot(p1.x - p2.x, p1.y - p2.y, (p1.z || 0) - (p2.z || 0));
+        }
+
+        function lerp(start, end, t) {
+            return start + (end - start) * t;
+        }
+
+        function showNotification(message, duration = 3000) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.getElementById('notifications').appendChild(notification);
+            setTimeout(() => notification.remove(), duration);
+        }
+
+        function updateCart() {
+            document.getElementById('cart-count').textContent = cartItems.length;
+        }
+
+        // === DETECCIÓN DE GESTOS ===
+        function detectGesture(hand) {
+            const tips = [8, 12, 16, 20].map(i => hand[i]);
+            const base = [5, 9, 13, 17].map(i => hand[i]);
+            const extended = tips.map((tip, i) => tip.y < base[i].y);
+            
+            if (extended.every(e => !e)) return 'FIST';
+            if (extended.every(e => e)) return 'OPEN';
+            if (extended[0] && !extended[1] && !extended[2] && !extended[3]) return 'POINT';
+            if (extended[0] && extended[1] && !extended[2] && !extended[3]) return 'PEACE';
+            if (distance(hand[4], hand[8]) < config.pinchThreshold) return 'PINCH';
+            
+            return 'NONE';
+        }
+
+        function mapToScreen(point, flip = true) {
+            const x = flip ? (1 - point.x) : point.x;
+            return {
+                x: x * window.innerWidth,
+                y: point.y * window.innerHeight
+            };
+        }
+
+        // === PROCESAMIENTO PRINCIPAL ===
         function onResults(results) {
             const hands = results.multiHandLandmarks;
             const shop = document.getElementById('shop-content');
 
-            if (hands && hands.length > 0) {
-                // MANO 1: Control de Cursor y Menú Radial
-                const h1 = hands[0];
-                const index = h1[8], thumb = h1[4];
-                
-                // Movimiento Fluido
-                const tx = (index.x - 0.5) * -15;
-                const ty = (index.y - 0.5) * -10;
-                smoothX += (tx - smoothX) * 0.15;
-                smoothY += (ty - smoothY) * 0.15;
-                cursor.position.set(smoothX, smoothY, 0);
+            const now = performance.now();
+            fps = Math.round(1000 / (now - lastTime));
+            lastTime = now;
+            document.getElementById('fps-display').textContent = fps;
 
-                // Mapeo a Pantalla
-                const sx = (0.5 - (index.x - 0.5) * 2.5) * window.innerWidth;
-                const sy = (0.5 + (index.y - 0.5) * 2.5) * window.innerHeight;
-                const el = document.elementFromPoint(sx, sy);
-                const card = el ? el.closest('.product-card') : null;
-
-                // Lógica de Menú Radial (Hover sostenido)
-                if (card) {
-                    if (card !== lastHovered) {
-                        clearTimeout(hoverTimer);
-                        hideRadial();
-                        lastHovered = card;
-                        card.classList.add('hover-effect');
-                        hoverTimer = setTimeout(() => showRadial(sx, sy), 1000);
-                    }
-                } else {
-                    clearTimeout(hoverTimer);
-                    hideRadial();
-                    if (lastHovered) lastHovered.classList.remove('hover-effect');
-                    lastHovered = null;
-                }
-
-                // MODO NOCTURNO: Basado en el tamaño de la mano (eje Z aproximado)
-                const handSize = Math.hypot(h1[0].x - h1[9].x, h1[0].y - h1[9].y);
-                if (handSize < 0.1) document.body.classList.add('dark-mode');
-                else document.body.classList.remove('dark-mode');
-
-                // MANO 2: SOPORTE MULTITOUCH (ZOOM)
-                if (hands.length === 2) {
-                    const h2 = hands[1];
-                    const currentDist = Math.hypot(h1[8].x - h2[8].x, h1[8].y - h2[8].y);
-                    
-                    if (lastDist > 0) {
-                        const diff = currentDist - lastDist;
-                        zoomLevel += diff * 2;
-                        zoomLevel = Math.max(0.5, Math.min(2, zoomLevel));
-                        shop.style.transform = `scale(${zoomLevel})`;
-                    }
-                    lastDist = currentDist;
-                    cursor.material.color.set(0xffff00); // Cambio a amarillo en modo Multitouch
-                } else {
-                    lastDist = 0;
-                    cursor.material.color.set(0x00ffcc);
-                }
-            }
-        }
-
-        function showRadial(x, y) {
-            const menu = document.getElementById('radial-menu');
-            menu.style.display = 'block';
-            menu.style.left = (x - 75) + 'px';
-            menu.style.top = (y - 75) + 'px';
-            document.querySelectorAll('.radial-item').forEach(item => item.style.transform = 'scale(1)');
-            radialActive = true;
-        }
-
-        function hideRadial() {
-            document.querySelectorAll('.radial-item').forEach(item => item.style.transform = 'scale(0)');
-            setTimeout(() => { if(!radialActive) document.getElementById('radial-menu').style.display = 'none'; }, 300);
-            radialActive = false;
-        }
-
-        // --- Inicialización ---
-        document.getElementById('activate-btn').onclick = function() {
-            this.style.display = 'none';
-            const handExt = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-            handExt.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.6 });
-            handExt.onResults(onResults);
-
-            new Camera(document.getElementById('input_video'), {
-                onFrame: async () => { await handExt.send({image: document.getElementById('input_video')}); },
-                width: 640, height: 480
-            }).start();
-        };
-
-        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
-        animate();
-    </script>
-</body>
-</html>
+            if (!hands || hands.length === 0) {
+                cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0);
+                if (lastHovered) {
+                    lastHovered.classList.remove('hover
