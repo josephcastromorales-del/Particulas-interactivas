@@ -3,68 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Air Mouse - Partículas Interactivas</title>
+    <title>Air Mouse - Vision Pro Style</title>
     <style>
-        /* 1. La Página Web de fondo */
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; overflow: hidden; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: white; overflow-y: auto; overflow-x: hidden; height: 200vh; }
         
+        /* Contenido largo para probar el Scroll */
         #web-content {
-            padding: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            z-index: 1;
+            padding: 40px;
+            display: flex; flex-direction: column; align-items: center; gap: 30px;
+            position: relative; z-index: 1;
         }
 
-        .btn-test {
-            padding: 20px 40px;
-            font-size: 1.5rem;
-            border: none;
-            border-radius: 10px;
-            background: #444;
-            color: white;
-            transition: all 0.3s;
-            cursor: pointer;
+        .card {
+            width: 80%; max-width: 500px; padding: 30px;
+            background: rgba(255,255,255,0.05); border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;
         }
+        .card.hover { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; transform: scale(1.02); }
+
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #input_video { position: fixed; bottom: 10px; right: 10px; width: 120px; border-radius: 10px; transform: scaleX(-1); opacity: 0.5; }
         
-        /* Estilo para cuando el mouse virtual está encima */
-        .btn-test.hover { background: #00ffcc; color: black; transform: scale(1.1); }
-        .btn-test:active { background: #ff0055; }
-
-        /* 2. El Lienzo de Partículas (Transparente y encima) */
-        #canvas-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none; /* Deja que el click pase a través */
-            z-index: 10;
-        }
-
-        #input_video {
-            position: fixed; bottom: 10px; right: 10px;
-            width: 120px; border: 2px solid #00ffcc; border-radius: 10px;
-            transform: scaleX(-1); z-index: 100;
-        }
-
-        #cursor-status {
-            position: fixed; top: 10px; width: 100%; text-align: center;
-            font-weight: bold; color: #00ffcc; text-shadow: 0 0 10px black;
+        #hud {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            padding: 10px 20px; background: rgba(0,0,0,0.8); border-radius: 30px;
+            border: 1px solid #00ffcc; color: #00ffcc; font-weight: bold; z-index: 100;
         }
     </style>
 </head>
 <body>
 
+    <div id="hud">🖐️ MUESTRA TU MANO</div>
+
     <div id="web-content">
-        <h1>Navegador Espacial</h1>
-        <p>Mueve tu mano para controlar el cursor de partículas.</p>
-        <button class="btn-test" onclick="alert('¡Botón 1 Clicked!')">BOTÓN MÁGICO 1</button>
-        <button class="btn-test" onclick="alert('¡Botón 2 Clicked!')">BOTÓN MÁGICO 2</button>
-        <button class="btn-test" onclick="this.style.borderRadius='50%'">REDONDEARME</button>
-        <div id="debug" style="font-size: 0.8rem; color: gray;">Esperando cámara...</div>
+        <h1>Vision Air Control</h1>
+        <div class="card" onclick="alert('Card 1')"><h3>Elemento 1</h3><p>Haz pellizco para clicar.</p></div>
+        <div class="card" onclick="alert('Card 2')"><h3>Elemento 2</h3><p>Mantén y mueve para SCROLL.</p></div>
+        <div class="card"><h3>Elemento 3</h3><p>Pellizco con dedo MEDIO para Click Derecho.</p></div>
+        <div class="card"><h3>Elemento 4</h3><p>Sigue bajando...</p></div>
+        <div class="card"><h3>Elemento 5</h3><p>Más contenido para scroll.</p></div>
+        <div class="card"><h3>Elemento 6</h3><p>Fin del demo.</p></div>
     </div>
 
-    <div id="cursor-status">🖐️ MANO ABIERTA (Mover)</div>
     <div id="canvas-container"></div>
     <video id="input_video" playsinline></video>
 
@@ -73,94 +53,113 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN THREE.JS ---
+        const hud = document.getElementById('hud');
+        
+        // --- THREE.JS CURSOR ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        camera.position.z = 5;
+        const cursorGeo = new THREE.RingGeometry(0.06, 0.09, 32);
+        const cursorMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc, depthTest: false });
+        const cursor = new THREE.Mesh(cursorGeo, cursorMat);
+        scene.add(cursor);
 
-        // Partículas del cursor
-        const partCount = 500;
-        const geo = new THREE.BufferGeometry();
-        const pos = new Float32Array(partCount * 3);
-        for(let i=0; i<partCount*3; i++) pos[i] = (Math.random()-0.5) * 2;
-        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-        const mat = new THREE.PointsMaterial({ size: 0.05, color: 0x00ffcc, transparent: true, blending: THREE.AdditiveBlending });
-        const particles = new THREE.Points(geo, mat);
-        scene.add(particles);
-
-        // --- LÓGICA DE CONTROL ---
-        let mouseX = 0, mouseY = 0;
-        let isClosed = false;
+        // --- LÓGICA DE GESTOS ---
+        let lastY = 0;
+        let isPinching = false;
+        let pinchStartTime = 0;
+        let startScrollY = 0;
         let lastElement = null;
 
         function onResults(results) {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const hand = results.multiHandLandmarks[0];
-                const indexTip = hand[8];
-                const thumbTip = hand[4];
+                const index = hand[8];
+                const thumb = hand[4];
+                const middle = hand[12];
 
-                // Convertir coordenadas de cámara a coordenadas de pantalla (píxeles)
-                const screenX = (1 - indexTip.x) * window.innerWidth;
-                const screenY = indexTip.y * window.innerHeight;
+                // Coordenadas
+                const screenX = (1 - index.x) * window.innerWidth;
+                const screenY = index.y * window.innerHeight;
+                const threeX = (index.x - 0.5) * -11;
+                const threeY = (index.y - 0.5) * -11;
 
-                // Mover partículas de Three.js
-                mouseX = (indexTip.x - 0.5) * -10;
-                mouseY = (indexTip.y - 0.5) * -10;
+                cursor.position.lerp(new THREE.Vector3(threeX, threeY, 0), 0.4);
 
-                // DETECTAR CLICK (Distancia entre pulgar e índice)
-                const dist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
-                const closedNow = dist < 0.05;
+                // Detección de Pellizcos (Distancias)
+                const distIndex = Math.hypot(index.x - thumb.x, index.y - thumb.y);
+                const distMiddle = Math.hypot(middle.x - thumb.x, middle.y - thumb.y);
 
-                // Simular Hover
-                const element = document.elementFromPoint(screenX, screenY);
-                if (element !== lastElement) {
+                const activePinch = distIndex < 0.06;
+                const activeRightClick = distMiddle < 0.06;
+
+                // Hover
+                const el = document.elementFromPoint(screenX, screenY);
+                if (el !== lastElement) {
                     if (lastElement) lastElement.classList.remove('hover');
-                    if (element && element.classList.contains('btn-test')) element.classList.add('hover');
-                    lastElement = element;
+                    if (el && el.closest('.card')) el.closest('.card').classList.add('hover');
+                    lastElement = el;
                 }
 
-                // Disparar Click Real
-                if (closedNow && !isClosed) {
-                    document.getElementById('cursor-status').innerText = "✊ ¡CLICK!";
-                    mat.color.set(0xff0055);
-                    if (element) element.click();
-                } else if (!closedNow && isClosed) {
-                    document.getElementById('cursor-status').innerText = "🖐️ MANO ABIERTA";
-                    mat.color.set(0x00ffcc);
+                // Lógica de Scroll y Click (Apple Style)
+                if (activePinch) {
+                    if (!isPinching) {
+                        isPinching = true;
+                        pinchStartTime = Date.now();
+                        startScrollY = index.y;
+                        lastY = index.y;
+                        cursor.scale.set(0.7, 0.7, 1);
+                        cursorMat.color.set(0xffff00); // Amarillo mientras mantienes
+                    } else {
+                        // Si se mantiene y se mueve -> SCROLL
+                        const deltaY = (index.y - lastY) * 2000;
+                        if (Math.abs(index.y - startScrollY) > 0.05) {
+                            window.scrollBy(0, deltaY);
+                            hud.innerText = "📜 SCROLLING";
+                        }
+                        lastY = index.y;
+                    }
+                } else {
+                    if (isPinching) {
+                        // Si soltó rápido -> CLICK
+                        const duration = Date.now() - pinchStartTime;
+                        if (duration < 300) {
+                            hud.innerText = "👌 CLICK IZQUIERDO";
+                            if (el) el.click();
+                        }
+                        isPinching = false;
+                        cursor.scale.set(1, 1, 1);
+                        cursorMat.color.set(0x00ffcc);
+                        hud.innerText = "🖐️ NAVEGANDO";
+                    }
                 }
-                isClosed = closedNow;
-                document.getElementById('debug').innerText = `X: ${Math.round(screenX)} Y: ${Math.round(screenY)}`;
+
+                // Click Derecho
+                if (activeRightClick) {
+                    hud.innerText = "🖱️ CLICK DERECHO";
+                    cursorMat.color.set(0xff00ff);
+                }
             }
         }
 
-        // --- INICIAR MEDIAPIPE ---
+        // --- SETUP MEDIAPIPE ---
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
-        hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7 });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.8 });
         hands.onResults(onResults);
 
         const videoElement = document.getElementById('input_video');
-        const cameraFeed = new Camera(videoElement, {
+        const cam = new Camera(videoElement, {
             onFrame: async () => { await hands.send({image: videoElement}); },
-            width: 480, height: 360
+            width: 640, height: 480
         });
-        cameraFeed.start();
+        cam.start();
 
-        // --- RENDER ---
         function animate() {
             requestAnimationFrame(animate);
-            particles.position.x += (mouseX - particles.position.x) * 0.2;
-            particles.position.y += (mouseY - particles.position.y) * 0.2;
-            particles.rotation.z += 0.02;
-            
-            // Efecto de escala al hacer click
-            const targetScale = isClosed ? 0.5 : 1.0;
-            particles.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.2);
-
             renderer.render(scene, camera);
         }
         animate();
