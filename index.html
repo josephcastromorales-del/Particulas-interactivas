@@ -2,59 +2,42 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TechOS Pro - Magnetism & Scroll</title>
+    <title>TechOS - Perfect Alignment</title>
     <style>
         :root { --accent: #00ffcc; --bg: #050505; }
         * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow-y: auto; height: 200vh; } /* Altura extra para probar el scroll */
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
         
-        header { height: 100px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222; }
-        
-        #content-wrapper { padding: 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        #viewport { 
+            height: 100vh; display: flex; align-items: center; justify-content: center; gap: 30px; 
+            position: relative; z-index: 10; 
+        }
 
-        /* Área de interacción aumentada */
         .interactive {
             background: #111; padding: 40px; border-radius: 20px; border: 2px solid #222;
-            text-align: center; transition: all 0.2s ease-out; position: relative;
+            text-align: center; width: 200px; transition: 0.2s;
         }
         
-        /* Efecto visual cuando el cursor está cerca (Magnetismo) */
+        /* El hover solo se activa si el JS confirma colisión real */
         .interactive.hover-effect { 
             border-color: var(--accent); 
-            box-shadow: 0 0 40px rgba(0,255,204,0.2); 
-            transform: translateY(-5px); 
+            box-shadow: 0 0 30px rgba(0,255,204,0.3);
+            transform: scale(1.05);
         }
 
         #canvas-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
-        #input_video { position: fixed; bottom: 10px; left: 10px; width: 150px; opacity: 0.6; transform: scaleX(-1); border-radius: 10px; border: 2px solid var(--accent); }
-
-        #activate-btn {
-            position: fixed; top: 20px; right: 20px; z-index: 10001; padding: 15px 30px; 
-            background: var(--accent); border: none; border-radius: 10px; font-weight: bold;
-        }
-
-        /* Indicador de Scroll */
-        #scroll-indicator {
-            position: fixed; right: 20px; top: 50%; width: 5px; height: 100px; background: #333; border-radius: 10px;
-        }
-        #scroll-bar { width: 100%; height: 20%; background: var(--accent); border-radius: 10px; transition: 0.1s; }
+        #input_video { position: fixed; bottom: 10px; right: 10px; width: 120px; opacity: 0.4; transform: scaleX(-1); border-radius: 10px; }
+        #activate-btn { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10001; padding: 15px 30px; background: var(--accent); border: none; border-radius: 50px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <button id="activate-btn">ACTIVAR SENSORES</button>
-    
-    <header><h1>CONTROL <span style="color:var(--accent)">GESTUAL</span></h1></header>
+    <button id="activate-btn">CALIBRAR Y ACTIVAR</button>
 
-    <div id="scroll-indicator"><div id="scroll-bar"></div></div>
-
-    <div id="content-wrapper">
-        <div class="interactive" onclick="window.open('https://youtube.com')"><h2>YouTube</h2><p>Click: Índice + Pulgar</p></div>
-        <div class="interactive"><h2>Scroll</h2><p>Medio + Pulgar</p></div>
-        <div class="interactive" onclick="alert('Acción confirmada')"><h2>Confirmar</h2></div>
-        <div class="interactive"><h2>Item 4</h2></div>
-        <div class="interactive"><h2>Item 5</h2></div>
-        <div class="interactive"><h2>Item 6</h2></div>
+    <div id="viewport">
+        <div class="interactive" onclick="console.log('Botón 1')"><h3>NÚCLEO</h3></div>
+        <div class="interactive" onclick="console.log('Botón 2')"><h3>ÓPTICA</h3></div>
+        <div class="interactive" onclick="window.open('https://youtube.com')"><h3>REDES</h3></div>
     </div>
 
     <div id="canvas-container"></div>
@@ -65,10 +48,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
-        let sx = 0, sy = 0, lastH = null, canClick = true;
-        let lastScrollY = 0;
+        let smoothX = 0, smoothY = 0, lastH = null, canClick = true;
 
-        // --- MOTOR 3D ---
+        // --- Configuración Three.js ---
         const scene = new THREE.Scene();
         const cam3d = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
         cam3d.position.z = 5;
@@ -76,64 +58,53 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        const cursor = new THREE.Group();
-        const mainDot = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
-        const ring = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.25, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.4 }));
-        cursor.add(mainDot, ring);
+        const cursor = new THREE.Mesh(
+            new THREE.RingGeometry(0.12, 0.18, 32),
+            new THREE.MeshBasicMaterial({ color: 0x00ffcc })
+        );
         scene.add(cursor);
 
         function onResults(res) {
             if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
                 const hand = res.multiHandLandmarks[0];
-                const thumb = hand[4], index = hand[8], middle = hand[12];
+                const index = hand[8], thumb = hand[4];
 
-                // Movimiento suavizado
+                // 1. CÁLCULO DE POSICIÓN 3D
                 const tx = (index.x - 0.5) * -15;
                 const ty = (index.y - 0.5) * -10;
-                sx += (tx - sx) * 0.2; sy += (ty - sy) * 0.2;
-                cursor.position.set(sx, sy, 0);
+                smoothX += (tx - smoothX) * 0.25;
+                smoothY += (ty - smoothY) * 0.25;
+                cursor.position.set(smoothX, smoothY, 0);
 
-                // Mapeo a pantalla con RANGO AMPLIADO
-                const px = (0.5 - (index.x - 0.5) * 3.0) * window.innerWidth;
-                const py = (0.5 + (index.y - 0.5) * 3.0) * window.innerHeight;
+                // 2. CONVERSIÓN EXACTA A PÍXELES DE PANTALLA
+                // Esta fórmula mapea la posición del objeto 3D a coordenadas reales de la ventana
+                const vector = new THREE.Vector3(cursor.position.x, cursor.position.y, 0);
+                vector.project(cam3d);
+                
+                const screenX = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const screenY = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
 
-                // MAGNETISMO: Detección de elementos
-                const hit = document.elementFromPoint(px, py);
+                // 3. DETECCIÓN POR PUNTERO REAL
+                // Usamos la posición exacta proyectada del círculo
+                const hit = document.elementFromPoint(screenX, screenY);
                 const target = hit ? hit.closest('.interactive, a, button') : null;
 
+                // Solo activamos hover si el puntero está "físicamente" sobre el objeto
                 if (target !== lastH) {
                     if (lastH) lastH.classList.remove('hover-effect');
                     if (target) target.classList.add('hover-effect');
                     lastH = target;
                 }
 
-                // GESTO 1: CLICK (Índice + Pulgar)
-                const distClick = Math.hypot(index.x - thumb.x, index.y - thumb.y);
-                if (distClick < 0.05 && canClick) {
-                    mainDot.material.color.set(0xffffff);
+                // CLICK (Pellizco)
+                const dist = Math.hypot(index.x - thumb.x, index.y - thumb.y);
+                if (dist < 0.05 && canClick) {
                     if (target) {
                         target.click();
                         canClick = false;
-                        setTimeout(() => canClick = true, 600);
+                        setTimeout(() => canClick = true, 700);
                     }
-                } else {
-                    mainDot.material.color.set(0x00ffcc);
                 }
-
-                // GESTO 2: SCROLL (Medio + Pulgar)
-                const distScroll = Math.hypot(middle.x - thumb.x, middle.y - thumb.y);
-                if (distScroll < 0.05) {
-                    ring.material.color.set(0xffff00);
-                    const scrollDelta = (middle.y - lastScrollY) * 5000;
-                    window.scrollBy(0, scrollDelta);
-                    
-                    // Actualizar barra visual
-                    const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-                    document.getElementById('scroll-bar').style.height = scrollPercent + "%";
-                } else {
-                    ring.material.color.set(0x00ffcc);
-                }
-                lastScrollY = middle.y;
             }
         }
 
@@ -148,12 +119,14 @@
             }).start();
         };
 
-        function animate() { 
-            requestAnimationFrame(animate); 
-            ring.rotation.z += 0.02;
-            renderer.render(scene, cam3d); 
-        }
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, cam3d); }
         animate();
+
+        window.onresize = () => {
+            cam3d.aspect = window.innerWidth / window.innerHeight;
+            cam3d.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
     </script>
 </body>
 </html>
