@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TechStore OS - Advanced Interface</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600&display=swap');
 
         :root {
             --accent: #00ffcc;
@@ -13,63 +13,33 @@
             --accent-3: #ffcc00;
             --bg: #0a0a0a;
             --card: #151515;
-            --text: #ffffff;
-            --glass: rgba(255, 255, 255, 0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
+            margin: 0;
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            color: var(--text);
-            transition: filter 0.5s, background 0.5s;
-            overflow-x: hidden;
-            position: relative;
+            color: white;
+            transition: filter 0.5s ease, background 0.5s ease;
+            overflow: hidden;
+            height: 100vh;
         }
-
-        /* Partículas de fondo */
-        #particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: var(--accent);
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 20s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); }
-            50% { transform: translateY(-100vh) translateX(50px); }
-        }
-
+        
         /* Modo Nocturno Mejorado */
         body.dark-mode {
-            filter: brightness(0.4) contrast(1.3);
+            filter: brightness(0.3) contrast(1.3);
             background: linear-gradient(135deg, #000000 0%, #0a0a1e 100%);
         }
-        body.dark-mode .particle { opacity: 0.1; }
 
-        /* Header con efectos */
+        /* Header Mejorado */
         header {
             padding: 25px;
             text-align: center;
             border-bottom: 2px solid transparent;
-            background: linear-gradient(90deg, transparent, var(--glass), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
             backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 10;
             box-shadow: 0 4px 30px rgba(0, 255, 204, 0.1);
         }
 
@@ -90,310 +60,7 @@
             50% { filter: drop-shadow(0 0 30px var(--accent-2)); }
         }
 
-        /* Sistema de pestañas */
-        #tabs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 20px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            z-index: 10;
-            position: relative;
-        }
-
-        .tab {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, var(--card), #1a1a1a);
-            border: 2px solid #333;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-
-        .tab:hover {
-            border-color: var(--accent);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 255, 204, 0.3);
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            color: #000;
-            border-color: transparent;
-        }
-
-        /* Viewport de productos mejorado */
-        #shop-viewport {
-            height: calc(100vh - 200px);
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 40px;
-            position: relative;
-            z-index: 5;
-            scroll-behavior: smooth;
-        }
-
-        #shop-viewport::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #shop-viewport::-webkit-scrollbar-track {
-            background: var(--card);
-        }
-
-        #shop-viewport::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 10px;
-        }
-
-        #shop-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
-            transform-origin: center;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Cards de productos mejoradas */
-        .product-card {
-            background: linear-gradient(135deg, var(--card) 0%, #1a1a1a 100%);
-            border-radius: 25px;
-            padding: 25px;
-            border: 2px solid #333;
-            text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .product-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, var(--accent), transparent);
-            transform: rotate(45deg);
-            opacity: 0;
-            transition: 0.5s;
-        }
-
-        .product-card:hover::before {
-            animation: shine 1.5s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
-        }
-
-        .product-card.hover-effect {
-            border-color: var(--accent);
-            box-shadow: 0 10px 50px rgba(0, 255, 204, 0.4);
-            transform: translateY(-10px) scale(1.05);
-        }
-
-        .product-card.selected {
-            border-color: var(--accent-2);
-            box-shadow: 0 0 40px var(--accent-2);
-        }
-
-        .product-icon {
-            font-size: 4em;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 10px var(--accent));
-        }
-
-        .product-card h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5em;
-            margin: 15px 0;
-            color: var(--accent);
-        }
-
-        .product-card p {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: var(--text);
-            margin: 10px 0;
-        }
-
-        .product-card .description {
-            font-size: 0.9em;
-            color: #999;
-            margin-top: 10px;
-            line-height: 1.5;
-        }
-
-        .product-card .stock {
-            display: inline-block;
-            padding: 5px 15px;
-            background: var(--accent);
-            color: #000;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        /* Menú Radial Mejorado */
-        #radial-menu {
-            position: fixed;
-            width: 200px;
-            height: 200px;
-            pointer-events: none;
-            display: none;
-            z-index: 1000;
-            filter: drop-shadow(0 0 20px rgba(0, 255, 204, 0.5));
-        }
-
-        .radial-item {
-            position: absolute;
-            width: 55px;
-            height: 55px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            border-radius: 50%;
-            color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            transform: scale(0);
-            cursor: pointer;
-            border: 3px solid #000;
-            pointer-events: auto;
-        }
-
-        .radial-item:hover {
-            transform: scale(1.2) !important;
-            background: linear-gradient(135deg, var(--accent-3), var(--accent));
-        }
-
-        /* Panel lateral de información */
-        #info-panel {
-            position: fixed;
-            right: -400px;
-            top: 0;
-            width: 400px;
-            height: 100vh;
-            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(26, 26, 46, 0.95));
-            backdrop-filter: blur(20px);
-            border-left: 2px solid var(--accent);
-            padding: 30px;
-            z-index: 2000;
-            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            overflow-y: auto;
-            box-shadow: -5px 0 50px rgba(0, 0, 0, 0.8);
-        }
-
-        #info-panel.active {
-            right: 0;
-        }
-
-        #info-panel h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--accent);
-            margin-bottom: 20px;
-            font-size: 2em;
-        }
-
-        #info-panel .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: var(--accent);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.5em;
-            color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
-        #info-panel .close-btn:hover {
-            transform: rotate(90deg);
-            background: var(--accent-2);
-        }
-
-        /* Carrito de compras */
-        #cart {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1500;
-            transition: 0.3s;
-            box-shadow: 0 5px 30px rgba(0, 255, 204, 0.5);
-        }
-
-        #cart:hover {
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        #cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 25px;
-            height: 25px;
-            background: var(--accent-3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #000;
-            font-size: 0.8em;
-        }
-
-        /* Botón de activación mejorado */
-        #activate-btn {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2000;
-            padding: 18px 50px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            border: none;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 10px 40px rgba(0, 255, 204, 0.5);
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 2px;
-            color: #000;
-        }
-
-        #activate-btn:hover {
-            transform: translateX(-50%) translateY(-5px);
-            box-shadow: 0 15px 50px rgba(0, 255, 204, 0.7);
-        }
-
-        /* HUD de información */
+        /* HUD Info */
         #hud {
             position: fixed;
             top: 20px;
@@ -428,6 +95,121 @@
             50% { opacity: 0.5; transform: scale(1.2); }
         }
 
+        /* Viewport mejorado */
+        #shop-viewport {
+            height: calc(100vh - 150px);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        #shop-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            padding: 40px;
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center;
+        }
+
+        /* Cards mejoradas */
+        .product-card {
+            background: linear-gradient(135deg, var(--card) 0%, #1a1a1a 100%);
+            border-radius: 25px;
+            padding: 30px;
+            border: 2px solid #333;
+            text-align: center;
+            width: 240px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, var(--accent), transparent);
+            transform: rotate(45deg);
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .product-card:hover::before {
+            animation: shine 1.5s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .product-card.hover-effect {
+            border-color: var(--accent);
+            box-shadow: 0 10px 50px rgba(0, 255, 204, 0.4);
+            transform: translateY(-10px) scale(1.05);
+        }
+
+        .product-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--accent));
+        }
+
+        .product-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            margin: 15px 0;
+            color: var(--accent);
+        }
+
+        .product-card p {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: white;
+            margin: 10px 0;
+        }
+
+        /* Menú Radial Mejorado */
+        #radial-menu {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 204, 0.5));
+        }
+
+        .radial-item {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-radius: 50%;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: scale(0);
+            cursor: pointer;
+            border: 3px solid #000;
+        }
+
+        .radial-item:hover {
+            transform: scale(1.2) !important;
+            background: linear-gradient(135deg, var(--accent-3), var(--accent));
+        }
+
         /* Notificaciones */
         #notifications {
             position: fixed;
@@ -445,9 +227,10 @@
             padding: 15px 25px;
             border-radius: 15px;
             border: 2px solid var(--accent);
-            color: var(--text);
+            color: white;
             animation: slideIn 0.5s ease-out;
             min-width: 250px;
+            font-weight: 600;
         }
 
         @keyframes slideIn {
@@ -461,7 +244,38 @@
             }
         }
 
-        /* Canvas y video */
+        /* Botón activación */
+        #activate-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 255, 204, 0.5);
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            color: #000;
+        }
+
+        #activate-btn:hover {
+            transform: translateX(-50%) translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 255, 204, 0.7);
+        }
+
+        #activate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Canvas y Video */
         #canvas-container {
             position: fixed;
             top: 0;
@@ -483,94 +297,13 @@
             border-radius: 15px;
             border: 2px solid var(--accent);
             z-index: 1000;
-            transition: 0.3s;
+            transition: all 0.3s;
         }
 
         #input_video:hover {
             opacity: 1;
             width: 200px;
             height: 133px;
-        }
-
-        /* Filtros de productos */
-        #filters {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 10px 25px;
-            background: var(--card);
-            border: 2px solid #333;
-            border-radius: 20px;
-            color: var(--text);
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: 600;
-        }
-
-        .filter-btn:hover {
-            border-color: var(--accent);
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
-            color: #000;
-        }
-
-        .filter-btn.active {
-            background: var(--accent);
-            color: #000;
-            border-color: transparent;
-        }
-
-        /* Búsqueda */
-        #search-bar {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            z-index: 10;
-        }
-
-        #search-input {
-            width: 500px;
-            padding: 15px 50px 15px 25px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #333;
-            border-radius: 50px;
-            color: var(--text);
-            font-size: 1em;
-            transition: 0.3s;
-        }
-
-        #search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
-        }
-
-        #search-btn {
-            position: absolute;
-            right: calc(50% - 230px);
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--accent);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2em;
-            color: #000;
-            transition: 0.3s;
-        }
-
-        #search-btn:hover {
-            background: var(--accent-2);
-            transform: translateY(-50%) rotate(90deg);
         }
 
         /* Responsivo */
@@ -582,22 +315,10 @@
             header h1 {
                 font-size: 1.8em;
             }
-            
-            #info-panel {
-                width: 100%;
-                right: -100%;
-            }
-            
-            #search-input {
-                width: 90%;
-            }
         }
     </style>
 </head>
 <body>
-
-    <!-- Partículas de fondo -->
-    <div id="particles"></div>
 
     <!-- HUD de información -->
     <div id="hud">
@@ -609,10 +330,8 @@
     <!-- Notificaciones -->
     <div id="notifications"></div>
 
-    <!-- Botón de activación -->
     <button id="activate-btn">🚀 INICIALIZAR SISTEMA</button>
 
-    <!-- Menú radial -->
     <div id="radial-menu">
         <div class="radial-item" style="top:10px; left:72px;">ℹ️ INFO</div>
         <div class="radial-item" style="bottom:10px; left:72px;">💾 SAVE</div>
@@ -620,164 +339,77 @@
         <div class="radial-item" style="top:72px; left:10px;">❤️ FAV</div>
     </div>
 
-    <!-- Header -->
-    <header>
-        <h1>TECH<span style="color:var(--accent)">STORE</span> OS</h1>
-    </header>
+    <header><h1>TECH<span style="color:var(--accent)">STORE</span> OS</h1></header>
 
-    <!-- Sistema de pestañas -->
-    <div id="tabs">
-        <div class="tab active" data-category="all">Todos</div>
-        <div class="tab" data-category="audio">Audio</div>
-        <div class="tab" data-category="visual">Visual</div>
-        <div class="tab" data-category="mobile">Móvil</div>
-    </div>
-
-    <!-- Barra de búsqueda -->
-    <div id="search-bar">
-        <input type="text" id="search-input" placeholder="Buscar productos...">
-        <button id="search-btn">🔍</button>
-    </div>
-
-    <!-- Filtros -->
-    <div id="filters">
-        <button class="filter-btn active" data-sort="default">Por Defecto</button>
-        <button class="filter-btn" data-sort="price-asc">Precio ↑</button>
-        <button class="filter-btn" data-sort="price-desc">Precio ↓</button>
-        <button class="filter-btn" data-sort="name">Nombre</button>
-    </div>
-
-    <!-- Viewport de productos -->
     <div id="shop-viewport">
         <div id="shop-content">
-            <div class="product-card" data-category="audio" data-price="200">
+            <div class="product-card" data-price="200">
                 <div class="product-icon">🎧</div>
                 <h3>AirPod Pro</h3>
                 <p>$200</p>
-                <p class="description">Cancelación de ruido activa y sonido espacial</p>
-                <span class="stock">En Stock: 15</span>
             </div>
-            <div class="product-card" data-category="visual" data-price="500">
+            <div class="product-card" data-price="500">
                 <div class="product-icon">🥽</div>
                 <h3>VR Glass Pro</h3>
                 <p>$500</p>
-                <p class="description">Realidad virtual de última generación</p>
-                <span class="stock">En Stock: 8</span>
             </div>
-            <div class="product-card" data-category="mobile" data-price="800">
+            <div class="product-card" data-price="800">
                 <div class="product-icon">🚁</div>
                 <h3>Drone X Pro</h3>
                 <p>$800</p>
-                <p class="description">4K camera con estabilización gimbal</p>
-                <span class="stock">En Stock: 5</span>
             </div>
-            <div class="product-card" data-category="audio" data-price="350">
+            <div class="product-card" data-price="350">
                 <div class="product-icon">🔊</div>
                 <h3>SoundBar Ultra</h3>
                 <p>$350</p>
-                <p class="description">Audio inmersivo 7.1 surround</p>
-                <span class="stock">En Stock: 12</span>
             </div>
-            <div class="product-card" data-category="visual" data-price="1200">
+            <div class="product-card" data-price="1200">
                 <div class="product-icon">📱</div>
                 <h3>Phone 15 Pro</h3>
                 <p>$1200</p>
-                <p class="description">Chip A17 Pro y cámara titanio</p>
-                <span class="stock">En Stock: 20</span>
             </div>
-            <div class="product-card" data-category="mobile" data-price="450">
+            <div class="product-card" data-price="450">
                 <div class="product-icon">⌚</div>
                 <h3>SmartWatch Elite</h3>
                 <p>$450</p>
-                <p class="description">Monitoreo salud y GPS integrado</p>
-                <span class="stock">En Stock: 25</span>
             </div>
         </div>
     </div>
 
-    <!-- Panel de información -->
-    <div id="info-panel">
-        <button class="close-btn">✕</button>
-        <h2 id="info-title">Producto</h2>
-        <div id="info-content">
-            <p>Selecciona un producto para ver más detalles</p>
-        </div>
-    </div>
-
-    <!-- Carrito -->
-    <div id="cart">
-        <span style="font-size: 2em;">🛒</span>
-        <div id="cart-count">0</div>
-    </div>
-
-    <!-- Canvas y video -->
     <div id="canvas-container"></div>
     <video id="input_video" playsinline></video>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
     <script>
         // === ESTADO DEL SISTEMA ===
-        let smoothX = 0, smoothY = 0, smoothVelX = 0, smoothVelY = 0;
-        let zoomLevel = 1, lastDist = 0, rotationAngle = 0;
+        let smoothX = 0, smoothY = 0, targetX = 0, targetY = 0;
+        let velocityX = 0, velocityY = 0;
+        let zoomLevel = 1, lastDist = 0;
         let hoverTimer, radialActive = false, lastHovered = null;
         let clickCooldown = false, gestureHistory = [];
-        let fps = 0, lastTime = performance.now();
-        let cartItems = [];
-        let favorites = [];
+        let fps = 0, lastTime = performance.now(), frameCount = 0;
         let currentGesture = 'NONE';
 
-        // === CONFIGURACIÓN ===
+        // === CONFIGURACIÓN MEJORADA ===
         const config = {
-            smoothingFactor: 0.25,
-            hoverDelay: 800,
-            clickThreshold: 30,
-            pinchThreshold: 0.05,
-            swipeThreshold: 0.15,
-            zoomSensitivity: 3,
-            maxZoom: 2.5,
-            minZoom: 0.6
+            smoothingFactor: 0.20,
+            velocityDamping: 0.85,
+            hoverDelay: 700,
+            pinchThreshold: 0.06,
+            swipeThreshold: 0.12,
+            zoomSensitivity: 2.5,
+            maxZoom: 2.2,
+            minZoom: 0.7,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.5
         };
-
-        // === PARTÍCULAS DE FONDO ===
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 30; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 20 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                container.appendChild(particle);
-            }
-        }
-        createParticles();
-
-        // === THREE.JS SETUP ===
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.z = 5;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-        const cursor = new THREE.Mesh(
-            new THREE.RingGeometry(0.1, 0.13, 32),
-            new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.8 })
-        );
-        const cursorProgress = new THREE.Mesh(
-            new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0),
-            new THREE.MeshBasicMaterial({ color: 0xff00ff })
-        );
-        scene.add(cursor);
-        scene.add(cursorProgress);
 
         // === UTILIDADES ===
         function distance(p1, p2) {
-            return Math.hypot(p1.x - p2.x, p1.y - p2.y, (p1.z || 0) - (p2.z || 0));
+            return Math.hypot(p1.x - p2.x, p1.y - p2.y);
         }
 
         function lerp(start, end, t) {
@@ -792,9 +424,34 @@
             setTimeout(() => notification.remove(), duration);
         }
 
-        function updateCart() {
-            document.getElementById('cart-count').textContent = cartItems.length;
-        }
+        // === THREE.JS SETUP ===
+        const scene = new THREE.Scene();
+        const camera3D = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera3D.position.z = 5;
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Cursor principal
+        const cursor = new THREE.Mesh(
+            new THREE.RingGeometry(0.1, 0.13, 32),
+            new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.9 })
+        );
+        scene.add(cursor);
+
+        // Anillo de progreso
+        const cursorProgress = new THREE.Mesh(
+            new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0),
+            new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.8 })
+        );
+        scene.add(cursorProgress);
+
+        // Punto central del cursor
+        const cursorDot = new THREE.Mesh(
+            new THREE.CircleGeometry(0.05, 32),
+            new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+        );
+        scene.add(cursorDot);
 
         // === DETECCIÓN DE GESTOS ===
         function detectGesture(hand) {
@@ -802,19 +459,30 @@
             const base = [5, 9, 13, 17].map(i => hand[i]);
             const extended = tips.map((tip, i) => tip.y < base[i].y);
             
+            const thumb = hand[4];
+            const index = hand[8];
+            
+            // PINCH - Pulgar e índice juntos
+            if (distance(thumb, index) < config.pinchThreshold) return 'PINCH';
+            
+            // FIST - Todos los dedos cerrados
             if (extended.every(e => !e)) return 'FIST';
+            
+            // OPEN - Todos los dedos extendidos
             if (extended.every(e => e)) return 'OPEN';
+            
+            // POINT - Solo índice extendido
             if (extended[0] && !extended[1] && !extended[2] && !extended[3]) return 'POINT';
+            
+            // PEACE - Índice y medio extendidos
             if (extended[0] && extended[1] && !extended[2] && !extended[3]) return 'PEACE';
-            if (distance(hand[4], hand[8]) < config.pinchThreshold) return 'PINCH';
             
             return 'NONE';
         }
 
-        function mapToScreen(point, flip = true) {
-            const x = flip ? (1 - point.x) : point.x;
+        function mapToScreen(point) {
             return {
-                x: x * window.innerWidth,
+                x: (1 - point.x) * window.innerWidth,
                 y: point.y * window.innerHeight
             };
         }
@@ -824,10 +492,15 @@
             const hands = results.multiHandLandmarks;
             const shop = document.getElementById('shop-content');
 
+            // Calcular FPS
+            frameCount++;
             const now = performance.now();
-            fps = Math.round(1000 / (now - lastTime));
-            lastTime = now;
-            document.getElementById('fps-display').textContent = fps;
+            if (now - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = now;
+                document.getElementById('fps-display').textContent = fps;
+            }
 
             if (!hands || hands.length === 0) {
                 cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, 0);
@@ -842,6 +515,7 @@
                 return;
             }
 
+            // === MANO PRINCIPAL ===
             const primaryHand = hands[0];
             const gesture = detectGesture(primaryHand);
             currentGesture = gesture;
@@ -850,36 +524,41 @@
             const index = primaryHand[8];
             const thumb = primaryHand[4];
 
-            const targetX = (index.x - 0.5) * -15;
-            const targetY = (index.y - 0.5) * -10;
-            smoothVelX = lerp(smoothVelX, targetX - smoothX, 0.3);
-            smoothVelY = lerp(smoothVelY, targetY - smoothY, 0.3);
-            smoothX += smoothVelX * config.smoothingFactor;
-            smoothY += smoothVelY * config.smoothingFactor;
+            // Suavizado con física de velocidad
+            targetX = (index.x - 0.5) * -15;
+            targetY = (index.y - 0.5) * -10;
+            
+            velocityX = lerp(velocityX, (targetX - smoothX) * config.smoothingFactor, 0.3);
+            velocityY = lerp(velocityY, (targetY - smoothY) * config.smoothingFactor, 0.3);
+            
+            velocityX *= config.velocityDamping;
+            velocityY *= config.velocityDamping;
+            
+            smoothX += velocityX;
+            smoothY += velocityY;
+            
             cursor.position.set(smoothX, smoothY, 0);
+            cursorDot.position.set(smoothX, smoothY, 0.1);
+            cursorProgress.position.set(smoothX, smoothY, -0.1);
 
+            // Mapeo a pantalla
             const screenPos = mapToScreen(index);
             const element = document.elementFromPoint(screenPos.x, screenPos.y);
             const card = element ? element.closest('.product-card') : null;
 
-            // PINCH = CLICK/COMPRA
-            const pinchDist = distance(thumb, index);
+            // === PINCH = CLICK/COMPRA ===
             if (gesture === 'PINCH' && !clickCooldown && card) {
                 const productName = card.querySelector('h3').textContent;
-                const productPrice = card.querySelector('p').textContent;
+                showNotification(`🛒 ${productName} agregado al carrito`);
                 
-                cartItems.push({ name: productName, price: productPrice });
-                updateCart();
-                showNotification(`✅ ${productName} agregado al carrito`);
-                
-                card.style.transform = 'scale(0.95)';
+                card.style.transform = 'scale(0.9)';
                 setTimeout(() => card.style.transform = '', 200);
                 
                 clickCooldown = true;
-                setTimeout(() => clickCooldown = false, 500);
+                setTimeout(() => clickCooldown = false, 600);
             }
 
-            // HOVER Y MENÚ RADIAL
+            // === HOVER Y MENÚ RADIAL ===
             if (card && gesture === 'POINT') {
                 if (card !== lastHovered) {
                     clearTimeout(hoverTimer);
@@ -890,11 +569,11 @@
                     
                     let progress = 0;
                     const progressInterval = setInterval(() => {
-                        progress += 0.05;
+                        progress += 0.06;
                         const angle = progress * Math.PI * 2;
                         cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, angle);
                         if (progress >= 1) clearInterval(progressInterval);
-                    }, 50);
+                    }, 40);
 
                     hoverTimer = setTimeout(() => {
                         showRadial(screenPos.x, screenPos.y, card);
@@ -910,7 +589,7 @@
                 }
             }
 
-            // SCROLL CON PEACE
+            // === SCROLL CON PEACE ===
             if (gesture === 'PEACE') {
                 gestureHistory.push(index.y);
                 if (gestureHistory.length > 5) gestureHistory.shift();
@@ -918,7 +597,7 @@
                 if (gestureHistory.length === 5) {
                     const delta = gestureHistory[4] - gestureHistory[0];
                     if (Math.abs(delta) > config.swipeThreshold) {
-                        document.getElementById('shop-viewport').scrollTop += delta * 800;
+                        shop.scrollTop += delta * 600;
                     }
                 }
                 cursor.material.color.set(0xff00ff);
@@ -927,23 +606,21 @@
                 cursor.material.color.set(0x00ffcc);
             }
 
-            // MODO NOCTURNO
+            // === MODO NOCTURNO ===
             if (gesture === 'FIST') {
                 document.body.classList.add('dark-mode');
-                showNotification('🌙 Modo nocturno activado', 1500);
             } else if (gesture === 'OPEN') {
                 document.body.classList.remove('dark-mode');
-                showNotification('☀️ Modo diurno activado', 1500);
             }
 
-            // DOS MANOS: ZOOM
+            // === DOS MANOS: ZOOM ===
             if (hands.length === 2) {
                 const hand2 = hands[1];
                 const currentDist = distance(primaryHand[8], hand2[8]);
                 
                 if (lastDist > 0) {
                     const diff = currentDist - lastDist;
-                    if (Math.abs(diff) > config.pinchThreshold) {
+                    if (Math.abs(diff) > 0.01) {
                         zoomLevel += diff * config.zoomSensitivity;
                         zoomLevel = Math.max(config.minZoom, Math.min(config.maxZoom, zoomLevel));
                         shop.style.transform = `scale(${zoomLevel})`;
@@ -972,24 +649,13 @@
                         const action = item.textContent.trim();
                         const productName = card.querySelector('h3').textContent;
                         
-                        if (action.includes('BUY')) {
-                            cartItems.push({ name: productName });
-                            updateCart();
-                            showNotification(`🛒 ${productName} agregado al carrito`);
-                        }
-                        if (action.includes('INFO')) {
-                            showProductInfo(card);
-                        }
-                        if (action.includes('FAV')) {
-                            favorites.push(productName);
-                            showNotification(`❤️ ${productName} agregado a favoritos`);
-                        }
-                        if (action.includes('SAVE')) {
-                            showNotification(`💾 ${productName} guardado`);
-                        }
+                        if (action.includes('BUY')) showNotification(`🛒 ${productName} comprado`);
+                        if (action.includes('INFO')) showNotification(`ℹ️ Info de ${productName}`);
+                        if (action.includes('FAV')) showNotification(`❤️ ${productName} en favoritos`);
+                        if (action.includes('SAVE')) showNotification(`💾 ${productName} guardado`);
                         hideRadial();
                     };
-                }, i * 100);
+                }, i * 80);
             });
             radialActive = true;
         }
@@ -1008,144 +674,43 @@
             radialActive = false;
         }
 
-        function showProductInfo(card) {
-            const panel = document.getElementById('info-panel');
-            const title = card.querySelector('h3').textContent;
-            const price = card.querySelector('p').textContent;
-            const desc = card.querySelector('.description').textContent;
-            const stock = card.querySelector('.stock').textContent;
-            
-            document.getElementById('info-title').textContent = title;
-            document.getElementById('info-content').innerHTML = `
-                <p style="font-size: 1.5em; color: var(--accent); margin: 20px 0;">${price}</p>
-                <p style="line-height: 1.8; margin: 15px 0;">${desc}</p>
-                <p style="color: #999; margin: 10px 0;">${stock}</p>
-                <button style="width: 100%; padding: 15px; margin-top: 20px; background: var(--accent); border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1em;" onclick="addToCart('${title}', '${price}')">Agregar al Carrito 🛒</button>
-            `;
-            panel.classList.add('active');
-        }
-
-        function addToCart(name, price) {
-            cartItems.push({ name, price });
-            updateCart();
-            showNotification(`✅ ${name} agregado al carrito`);
-        }
-
-        // === TABS Y FILTROS ===
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                const category = tab.dataset.category;
-                document.querySelectorAll('.product-card').forEach(card => {
-                    if (category === 'all' || card.dataset.category === category) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        });
-
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                const sort = btn.dataset.sort;
-                const container = document.getElementById('shop-content');
-                const cards = Array.from(container.querySelectorAll('.product-card'));
-                
-                cards.sort((a, b) => {
-                    if (sort === 'price-asc') return parseInt(a.dataset.price) - parseInt(b.dataset.price);
-                    if (sort === 'price-desc') return parseInt(b.dataset.price) - parseInt(a.dataset.price);
-                    if (sort === 'name') return a.querySelector('h3').textContent.localeCompare(b.querySelector('h3').textContent);
-                    return 0;
-                });
-                
-                cards.forEach(card => container.appendChild(card));
-            });
-        });
-
-        // BÚSQUEDA
-        document.getElementById('search-btn').addEventListener('click', () => {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            document.querySelectorAll('.product-card').forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                card.style.display = title.includes(query) ? 'block' : 'none';
-            });
-        });
-
-        document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('search-btn').click();
-        });
-
-        // CERRAR PANEL
-        document.querySelector('.close-btn').addEventListener('click', () => {
-            document.getElementById('info-panel').classList.remove('active');
-        });
-
-        // CARRITO
-        document.getElementById('cart').addEventListener('click', () => {
-            if (cartItems.length === 0) {
-                showNotification('🛒 El carrito está vacío');
-            } else {
-                const total = cartItems.reduce((sum, item) => {
-                    const price = parseInt(item.price?.replace(', '') || 0);
-                    return sum + price;
-                }, 0);
-                showNotification(`🛒 Carrito: ${cartItems.length} items | Total: ${total}`, 4000);
-            }
-        });
-
         // === INICIALIZACIÓN ===
         document.getElementById('activate-btn').onclick = async function() {
             try {
                 this.textContent = '⏳ CARGANDO...';
                 this.disabled = true;
                 
-                // Verificar soporte de cámara
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showNotification('❌ Tu navegador no soporta acceso a cámara', 5000);
-                    this.textContent = '❌ NO SOPORTADO';
-                    return;
-                }
-
-                const hands = new Hands({
-                    locateFile: (file) => {
-                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
-                    }
+                const handTracker = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
                 });
                 
-                hands.setOptions({
+                handTracker.setOptions({
                     maxNumHands: 2,
                     modelComplexity: 1,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
+                    minDetectionConfidence: config.minDetectionConfidence,
+                    minTrackingConfidence: config.minTrackingConfidence
                 });
                 
-                hands.onResults(onResults);
+                handTracker.onResults(onResults);
 
                 const videoElement = document.getElementById('input_video');
-                
-                const camera = new Camera(videoElement, {
+                const cam = new Camera(videoElement, {
                     onFrame: async () => {
-                        await hands.send({ image: videoElement });
+                        await handTracker.send({ image: videoElement });
                     },
                     width: 1280,
                     height: 720
                 });
 
-                await camera.start();
+                await cam.start();
                 
                 this.style.display = 'none';
                 document.getElementById('status').textContent = 'Activo ✓';
-                showNotification('🚀 Sistema inicializado correctamente');
+                showNotification('🚀 Sistema inicializado - Muestra tu mano');
                 
             } catch (error) {
-                console.error('Error al inicializar:', error);
-                showNotification('❌ Error: ' + error.message, 5000);
+                console.error('Error:', error);
+                showNotification('❌ Error al inicializar', 5000);
                 this.textContent = '🔄 REINTENTAR';
                 this.disabled = false;
             }
@@ -1154,15 +719,19 @@
         // === ANIMACIÓN ===
         function animate() {
             requestAnimationFrame(animate);
-            cursor.rotation.z += 0.02;
-            cursorProgress.rotation.z -= 0.03;
-            renderer.render(scene, camera);
+            
+            cursor.rotation.z += 0.03;
+            cursorProgress.rotation.z -= 0.04;
+            cursorDot.scale.x = cursorDot.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.2;
+            
+            renderer.render(scene, camera3D);
         }
         animate();
 
+        // Resize
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            camera3D.aspect = window.innerWidth / window.innerHeight;
+            camera3D.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
