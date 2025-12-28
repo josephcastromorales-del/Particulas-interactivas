@@ -110,7 +110,7 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 30px;
             padding: 40px;
-            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: transform 0.15s ease-out;
             transform-origin: center;
         }
 
@@ -122,7 +122,7 @@
             border: 2px solid #333;
             text-align: center;
             width: 240px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease-out;
             position: relative;
             overflow: hidden;
             cursor: pointer;
@@ -199,7 +199,7 @@
             justify-content: center;
             font-size: 11px;
             font-weight: bold;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: all 0.2s ease-out;
             transform: scale(0);
             cursor: pointer;
             border: 3px solid #000;
@@ -393,18 +393,18 @@
         let fps = 0, lastTime = performance.now(), frameCount = 0;
         let currentGesture = 'NONE';
 
-        // === CONFIGURACIÓN MEJORADA ===
+        // === CONFIGURACIÓN OPTIMIZADA PARA MÁXIMO RENDIMIENTO ===
         const config = {
-            smoothingFactor: 0.20,
-            velocityDamping: 0.85,
-            hoverDelay: 700,
-            pinchThreshold: 0.06,
-            swipeThreshold: 0.12,
-            zoomSensitivity: 2.5,
+            smoothingFactor: 0.45,      // Más rápido
+            velocityDamping: 0.75,      // Menos inercia
+            hoverDelay: 400,            // Más rápido
+            pinchThreshold: 0.08,       // Más sensible
+            swipeThreshold: 0.08,       // Más sensible
+            zoomSensitivity: 4,         // Más rápido
             maxZoom: 2.2,
             minZoom: 0.7,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.5
+            minDetectionConfidence: 0.5, // Más rápido
+            minTrackingConfidence: 0.5   // Más rápido
         };
 
         // === UTILIDADES ===
@@ -524,15 +524,12 @@
             const index = primaryHand[8];
             const thumb = primaryHand[4];
 
-            // Suavizado con física de velocidad
+            // Suavizado ultra-rápido con física
             targetX = (index.x - 0.5) * -15;
             targetY = (index.y - 0.5) * -10;
             
-            velocityX = lerp(velocityX, (targetX - smoothX) * config.smoothingFactor, 0.3);
-            velocityY = lerp(velocityY, (targetY - smoothY) * config.smoothingFactor, 0.3);
-            
-            velocityX *= config.velocityDamping;
-            velocityY *= config.velocityDamping;
+            velocityX = (targetX - smoothX) * config.smoothingFactor;
+            velocityY = (targetY - smoothY) * config.smoothingFactor;
             
             smoothX += velocityX;
             smoothY += velocityY;
@@ -546,19 +543,19 @@
             const element = document.elementFromPoint(screenPos.x, screenPos.y);
             const card = element ? element.closest('.product-card') : null;
 
-            // === PINCH = CLICK/COMPRA ===
+            // === PINCH = CLICK/COMPRA - MÁS SENSIBLE ===
             if (gesture === 'PINCH' && !clickCooldown && card) {
                 const productName = card.querySelector('h3').textContent;
-                showNotification(`🛒 ${productName} agregado al carrito`);
+                showNotification(`🛒 ${productName} agregado`);
                 
-                card.style.transform = 'scale(0.9)';
-                setTimeout(() => card.style.transform = '', 200);
+                card.style.transform = 'scale(0.92)';
+                setTimeout(() => card.style.transform = '', 150);
                 
                 clickCooldown = true;
-                setTimeout(() => clickCooldown = false, 600);
+                setTimeout(() => clickCooldown = false, 400);
             }
 
-            // === HOVER Y MENÚ RADIAL ===
+            // === HOVER Y MENÚ RADIAL - RÁPIDO ===
             if (card && gesture === 'POINT') {
                 if (card !== lastHovered) {
                     clearTimeout(hoverTimer);
@@ -569,11 +566,11 @@
                     
                     let progress = 0;
                     const progressInterval = setInterval(() => {
-                        progress += 0.06;
+                        progress += 0.1;
                         const angle = progress * Math.PI * 2;
                         cursorProgress.geometry = new THREE.RingGeometry(0.14, 0.17, 32, 1, 0, angle);
                         if (progress >= 1) clearInterval(progressInterval);
-                    }, 40);
+                    }, 25);
 
                     hoverTimer = setTimeout(() => {
                         showRadial(screenPos.x, screenPos.y, card);
@@ -589,15 +586,15 @@
                 }
             }
 
-            // === SCROLL CON PEACE ===
+            // === SCROLL CON PEACE - MÁS RÁPIDO ===
             if (gesture === 'PEACE') {
                 gestureHistory.push(index.y);
-                if (gestureHistory.length > 5) gestureHistory.shift();
+                if (gestureHistory.length > 3) gestureHistory.shift();
                 
-                if (gestureHistory.length === 5) {
-                    const delta = gestureHistory[4] - gestureHistory[0];
+                if (gestureHistory.length === 3) {
+                    const delta = gestureHistory[2] - gestureHistory[0];
                     if (Math.abs(delta) > config.swipeThreshold) {
-                        shop.scrollTop += delta * 600;
+                        shop.scrollTop += delta * 800;
                     }
                 }
                 cursor.material.color.set(0xff00ff);
@@ -698,8 +695,8 @@
                     onFrame: async () => {
                         await handTracker.send({ image: videoElement });
                     },
-                    width: 1280,
-                    height: 720
+                    width: 640,
+                    height: 480
                 });
 
                 await cam.start();
