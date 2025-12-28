@@ -2,49 +2,58 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>TechOS - Precision Fix</title>
+    <title>TechOS - Vertical Scroll OS</title>
     <style>
         :root { --accent: #00ffcc; --bg: #050505; }
         * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; height: 300vh; } /* Mucho scroll para probar */
         
-        #viewport { 
-            height: 100vh; display: grid; grid-template-columns: repeat(3, 1fr); 
-            gap: 20px; padding: 100px; position: relative; z-index: 10; 
-        }
+        #viewport { padding: 120px 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
 
         .interactive {
-            background: #111; padding: 30px; border-radius: 15px; border: 2px solid #222;
-            text-align: center; transition: 0.1s; display: flex; flex-direction: column; justify-content: center;
+            background: #111; padding: 40px; border-radius: 15px; border: 2px solid #222;
+            text-align: center; transition: 0.2s;
         }
-        
-        /* Efecto de hover estrictamente sincronizado */
-        .interactive.hover-effect { 
-            border-color: var(--accent); 
-            background: rgba(0, 255, 204, 0.05);
-            box-shadow: 0 0 20px rgba(0,255,204,0.2);
+        .interactive.hover-effect { border-color: var(--accent); transform: scale(1.05); }
+
+        /* Guía visual para el scroll */
+        #scroll-zone-ui {
+            position: fixed; bottom: 10px; left: 10px; width: 150px; height: 112px;
+            border: 2px solid rgba(0, 255, 204, 0.3); border-radius: 10px; z-index: 1000;
+            overflow: hidden; pointer-events: none;
+        }
+        #scroll-line {
+            position: absolute; top: 50%; width: 100%; height: 1px; 
+            background: rgba(0, 255, 204, 0.5);
         }
 
+        #input_video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: 0.6; }
         #canvas-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
-        #input_video { position: fixed; bottom: 10px; right: 10px; width: 120px; opacity: 0.4; transform: scaleX(-1); border-radius: 10px; }
         #activate-btn { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10001; padding: 15px 30px; background: var(--accent); border: none; border-radius: 50px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <button id="activate-btn">CALIBRAR SISTEMA</button>
+    <button id="activate-btn">INICIAR SISTEMA</button>
+
+    <div id="scroll-zone-ui">
+        <video id="input_video" playsinline></video>
+        <div id="scroll-line"></div>
+    </div>
 
     <div id="viewport">
-        <div class="interactive" onclick="window.open('https://youtube.com')"><h3>YouTube</h3><small>Pellizco Índice</small></div>
-        <div class="interactive"><h3>Scroll</h3><small>Pellizco Medio</small></div>
-        <div class="interactive" onclick="alert('Confirmado')"><h3>Confirmar</h3></div>
-        <div class="interactive"><h3>Item 4</h3></div>
-        <div class="interactive"><h3>Item 5</h3></div>
-        <div class="interactive"><h3>Item 6</h3></div>
+        <div class="interactive"><h3>NODO 1</h3></div>
+        <div class="interactive"><h3>NODO 2</h3></div>
+        <div class="interactive"><h3>NODO 3</h3></div>
+        <div class="interactive"><h3>NODO 4</h3></div>
+        <div class="interactive"><h3>NODO 5</h3></div>
+        <div class="interactive"><h3>NODO 6</h3></div>
+        <div class="interactive"><h3>NODO 7</h3></div>
+        <div class="interactive"><h3>NODO 8</h3></div>
+        <div class="interactive"><h3>NODO 9</h3></div>
     </div>
 
     <div id="canvas-container"></div>
-    <video id="input_video" playsinline></video>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
@@ -52,7 +61,6 @@
 
     <script>
         let smoothX = 0, smoothY = 0, lastH = null, canClick = true;
-        let lastScrollY = 0;
 
         const scene = new THREE.Scene();
         const cam3d = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
@@ -61,10 +69,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Cursor de alta visibilidad
         const cursor = new THREE.Group();
-        const mainDot = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
-        const ring = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.26, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.4 }));
+        const mainDot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.24, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.4 }));
         cursor.add(mainDot, ring);
         scene.add(cursor);
 
@@ -73,22 +80,20 @@
                 const hand = res.multiHandLandmarks[0];
                 const thumb = hand[4], index = hand[8], middle = hand[12];
 
-                // 1. Posición suavizada en el espacio 3D
+                // Movimiento del cursor 3D
                 const tx = (index.x - 0.5) * -15; 
                 const ty = (index.y - 0.5) * -10;
                 smoothX += (tx - smoothX) * 0.2;
                 smoothY += (ty - smoothY) * 0.2;
                 cursor.position.set(smoothX, smoothY, 0);
 
-                // 2. PROYECCIÓN CRÍTICA: Convertir posición del círculo 3D a píxeles exactos de pantalla
+                // Proyección a pantalla para Hover
                 const vector = new THREE.Vector3(cursor.position.x, cursor.position.y, 0);
                 vector.project(cam3d);
-                
-                const screenX = (vector.x * 0.5 + 0.5) * window.innerWidth;
-                const screenY = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+                const sx = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const sy = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
 
-                // 3. DETECCIÓN DE INTERFAZ (Solo donde está el círculo)
-                const hit = document.elementFromPoint(screenX, screenY);
+                const hit = document.elementFromPoint(sx, sy);
                 const target = hit ? hit.closest('.interactive, a, button') : null;
 
                 if (target !== lastH) {
@@ -97,7 +102,26 @@
                     lastH = target;
                 }
 
-                // GESTO: CLICK (Índice + Pulgar)
+                // --- LÓGICA DE SCROLL DIVIDIDA ---
+                const distScroll = Math.hypot(middle.x - thumb.x, middle.y - thumb.y);
+                
+                if (distScroll < 0.05) {
+                    ring.material.color.set(0xffff00); // Cambia a amarillo al activar scroll
+                    
+                    // Calculamos la distancia desde el centro del video (0.5)
+                    // Si y < 0.5 está arriba, si y > 0.5 está abajo
+                    const offset = middle.y - 0.5; 
+                    
+                    // Aplicamos una "zona muerta" pequeña para que no se mueva por error en el centro
+                    if (Math.abs(offset) > 0.05) {
+                        const speed = offset * 45; // Ajusta este número para más o menos velocidad
+                        window.scrollBy(0, speed);
+                    }
+                } else {
+                    ring.material.color.set(0x00ffcc);
+                }
+
+                // CLICK
                 const dClick = Math.hypot(index.x - thumb.x, index.y - thumb.y);
                 if (dClick < 0.05 && canClick) {
                     if (target) {
@@ -106,17 +130,6 @@
                         setTimeout(() => canClick = true, 800);
                     }
                 }
-
-                // GESTO: SCROLL (Medio + Pulgar)
-                const dScroll = Math.hypot(middle.x - thumb.x, middle.y - thumb.y);
-                if (dScroll < 0.05) {
-                    const delta = (middle.y - lastScrollY) * 4000;
-                    window.scrollBy(0, delta);
-                    ring.material.color.set(0xffff00);
-                } else {
-                    ring.material.color.set(0x00ffcc);
-                }
-                lastScrollY = middle.y;
             }
         }
 
@@ -131,18 +144,8 @@
             }).start();
         };
 
-        function animate() { 
-            requestAnimationFrame(animate); 
-            ring.rotation.z += 0.02;
-            renderer.render(scene, cam3d); 
-        }
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, cam3d); }
         animate();
-
-        window.onresize = () => {
-            cam3d.aspect = window.innerWidth / window.innerHeight;
-            cam3d.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
     </script>
 </body>
 </html>
