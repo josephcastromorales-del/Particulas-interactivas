@@ -2,58 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechOS Ultra-Optimized</title>
+    <title>TechOS Pro - Magnetism & Scroll</title>
     <style>
         :root { --accent: #00ffcc; --bg: #050505; }
         * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow-y: auto; height: 200vh; } /* Altura extra para probar el scroll */
         
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; transition: 0.3s; }
+        header { height: 100px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #222; }
         
-        /* FILTRO VISIÓN NOCTURNA */
-        body.nv-mode { filter: brightness(1.4) contrast(1.2) sepia(1) hue-rotate(80deg) saturate(4); }
-        body.nv-mode::after { content: ""; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,255,0,0.05) 0px, rgba(0,255,0,0.05) 1px, transparent 2px); pointer-events: none; z-index: 10000; }
+        #content-wrapper { padding: 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
 
-        header { padding: 20px; text-align: center; border-bottom: 1px solid #222; position: relative; z-index: 10; }
-        
-        #viewport { height: 80vh; display: flex; align-items: center; justify-content: center; gap: 30px; position: relative; z-index: 10; }
-
-        /* CLASE UNIVERSAL: Cualquier elemento con 'interactive' o un link funcionará */
+        /* Área de interacción aumentada */
         .interactive {
-            background: #111; padding: 25px; border-radius: 15px; border: 1px solid #333;
-            text-align: center; min-width: 150px; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #111; padding: 40px; border-radius: 20px; border: 2px solid #222;
+            text-align: center; transition: all 0.2s ease-out; position: relative;
         }
-        .interactive.hover-effect { border-color: var(--accent); box-shadow: 0 0 25px rgba(0,255,204,0.3); transform: scale(1.05); }
-        .interactive a { color: var(--accent); text-decoration: none; font-weight: bold; }
+        
+        /* Efecto visual cuando el cursor está cerca (Magnetismo) */
+        .interactive.hover-effect { 
+            border-color: var(--accent); 
+            box-shadow: 0 0 40px rgba(0,255,204,0.2); 
+            transform: translateY(-5px); 
+        }
 
         #canvas-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
-        #input_video { position: fixed; bottom: 10px; left: 10px; width: 120px; opacity: 0.4; transform: scaleX(-1); border-radius: 10px; z-index: 100; }
+        #input_video { position: fixed; bottom: 10px; left: 10px; width: 150px; opacity: 0.6; transform: scaleX(-1); border-radius: 10px; border: 2px solid var(--accent); }
 
         #activate-btn {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 10001; padding: 20px 40px; background: var(--accent); color: black;
-            border: none; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 0 30px var(--accent);
+            position: fixed; top: 20px; right: 20px; z-index: 10001; padding: 15px 30px; 
+            background: var(--accent); border: none; border-radius: 10px; font-weight: bold;
         }
+
+        /* Indicador de Scroll */
+        #scroll-indicator {
+            position: fixed; right: 20px; top: 50%; width: 5px; height: 100px; background: #333; border-radius: 10px;
+        }
+        #scroll-bar { width: 100%; height: 20%; background: var(--accent); border-radius: 10px; transition: 0.1s; }
     </style>
 </head>
 <body>
 
-    <button id="activate-btn">INICIAR SISTEMA CORE</button>
+    <button id="activate-btn">ACTIVAR SENSORES</button>
+    
+    <header><h1>CONTROL <span style="color:var(--accent)">GESTUAL</span></h1></header>
 
-    <header><h1>TECH<span style="color:var(--accent)">OS</span> v2.0</h1></header>
+    <div id="scroll-indicator"><div id="scroll-bar"></div></div>
 
-    <div id="viewport">
-        <div class="interactive">
-            <a href="https://youtube.com" target="_blank">YOUTUBE</a>
-        </div>
-
-        <div class="interactive" onclick="document.body.classList.toggle('nv-mode')">
-            <p>VISIÓN NOCTURNA</p>
-        </div>
-
-        <div class="interactive" onclick="alert('Sistema Optimizado')">
-            <p>ESTADO</p>
-        </div>
+    <div id="content-wrapper">
+        <div class="interactive" onclick="window.open('https://youtube.com')"><h2>YouTube</h2><p>Click: Índice + Pulgar</p></div>
+        <div class="interactive"><h2>Scroll</h2><p>Medio + Pulgar</p></div>
+        <div class="interactive" onclick="alert('Acción confirmada')"><h2>Confirmar</h2></div>
+        <div class="interactive"><h2>Item 4</h2></div>
+        <div class="interactive"><h2>Item 5</h2></div>
+        <div class="interactive"><h2>Item 6</h2></div>
     </div>
 
     <div id="canvas-container"></div>
@@ -65,41 +66,38 @@
 
     <script>
         let sx = 0, sy = 0, lastH = null, canClick = true;
+        let lastScrollY = 0;
 
-        // --- MOTOR 3D LITE ---
+        // --- MOTOR 3D ---
         const scene = new THREE.Scene();
         const cam3d = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 100);
         cam3d.position.z = 5;
-
-        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(1);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const cursor = new THREE.Group();
-        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
-        const ring = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.22, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.5 }));
-        cursor.add(dot, ring);
+        const mainDot = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc }));
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.25, 32), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.4 }));
+        cursor.add(mainDot, ring);
         scene.add(cursor);
 
-        // --- PROCESAMIENTO IA ---
         function onResults(res) {
             if (res.multiHandLandmarks && res.multiHandLandmarks[0]) {
                 const hand = res.multiHandLandmarks[0];
-                const index = hand[8], thumb = hand[4];
+                const thumb = hand[4], index = hand[8], middle = hand[12];
 
-                // Movimiento Suavizado
-                const tx = (index.x - 0.5) * -14;
+                // Movimiento suavizado
+                const tx = (index.x - 0.5) * -15;
                 const ty = (index.y - 0.5) * -10;
-                sx += (tx - sx) * 0.25; sy += (ty - sy) * 0.25;
+                sx += (tx - sx) * 0.2; sy += (ty - sy) * 0.2;
                 cursor.position.set(sx, sy, 0);
-                ring.rotation.z += 0.05;
 
-                // Coordenadas de pantalla
-                const px = (0.5 - (index.x - 0.5) * 2.5) * window.innerWidth;
-                const py = (0.5 + (index.y - 0.5) * 2.5) * window.innerHeight;
+                // Mapeo a pantalla con RANGO AMPLIADO
+                const px = (0.5 - (index.x - 0.5) * 3.0) * window.innerWidth;
+                const py = (0.5 + (index.y - 0.5) * 3.0) * window.innerHeight;
 
-                // DETECCIÓN UNIVERSAL (No necesitas tocar el JS)
+                // MAGNETISMO: Detección de elementos
                 const hit = document.elementFromPoint(px, py);
                 const target = hit ? hit.closest('.interactive, a, button') : null;
 
@@ -109,43 +107,53 @@
                     lastH = target;
                 }
 
-                // GESTO DE PELLIZCO (CLICK)
-                const dist = Math.hypot(index.x - thumb.x, index.y - thumb.y);
-                if (dist < 0.04 && canClick) {
+                // GESTO 1: CLICK (Índice + Pulgar)
+                const distClick = Math.hypot(index.x - thumb.x, index.y - thumb.y);
+                if (distClick < 0.05 && canClick) {
+                    mainDot.material.color.set(0xffffff);
                     if (target) {
-                        cursor.scale.set(0.6, 0.6, 1);
-                        if (target.tagName === 'A') window.open(target.href, '_blank');
-                        else target.click();
-                        canClick = false; 
-                        setTimeout(() => canClick = true, 800); // Evita dobles clicks
+                        target.click();
+                        canClick = false;
+                        setTimeout(() => canClick = true, 600);
                     }
-                } else if (dist > 0.06) {
-                    cursor.scale.set(1, 1, 1);
+                } else {
+                    mainDot.material.color.set(0x00ffcc);
                 }
+
+                // GESTO 2: SCROLL (Medio + Pulgar)
+                const distScroll = Math.hypot(middle.x - thumb.x, middle.y - thumb.y);
+                if (distScroll < 0.05) {
+                    ring.material.color.set(0xffff00);
+                    const scrollDelta = (middle.y - lastScrollY) * 5000;
+                    window.scrollBy(0, scrollDelta);
+                    
+                    // Actualizar barra visual
+                    const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+                    document.getElementById('scroll-bar').style.height = scrollPercent + "%";
+                } else {
+                    ring.material.color.set(0x00ffcc);
+                }
+                lastScrollY = middle.y;
             }
         }
 
-        // --- INICIALIZACIÓN ---
         document.getElementById('activate-btn').onclick = function() {
             this.style.display = 'none';
             const hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
-            hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7 });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.8 });
             hands.onResults(onResults);
-
             new Camera(document.getElementById('input_video'), {
-                onFrame: async () => { if(!document.hidden) await hands.send({image: document.getElementById('input_video')}); },
-                width: 480, height: 360
+                onFrame: async () => { await hands.send({image: document.getElementById('input_video')}); },
+                width: 640, height: 480
             }).start();
         };
 
-        function animate() { requestAnimationFrame(animate); renderer.render(scene, cam3d); }
+        function animate() { 
+            requestAnimationFrame(animate); 
+            ring.rotation.z += 0.02;
+            renderer.render(scene, cam3d); 
+        }
         animate();
-
-        window.onresize = () => {
-            cam3d.aspect = window.innerWidth / window.innerHeight;
-            cam3d.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
     </script>
 </body>
 </html>
